@@ -61,12 +61,12 @@ export default function Contact() {
           onSubmit={(e) => e.preventDefault()}
         >
           <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="নাম" className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-neon-blue outline-none" />
-            <input type="email" placeholder="ইমেল" className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-neon-blue outline-none" />
+            <input type="text" placeholder="নাম" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 focus:border-neon-blue outline-none shadow-sm dark:shadow-none" />
+            <input type="email" placeholder="ইমেল" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 focus:border-neon-blue outline-none shadow-sm dark:shadow-none" />
           </div>
-          <input type="text" placeholder="বিষয়" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-neon-blue outline-none" />
-          <textarea placeholder="আপনার মেসেজ..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 h-32 focus:border-neon-blue outline-none" />
-          <button className="w-full py-4 bg-neon-pink text-white rounded-xl font-bold shadow-lg shadow-neon-pink/30 flex items-center justify-center gap-2">
+          <input type="text" placeholder="বিষয়" className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 focus:border-neon-blue outline-none shadow-sm dark:shadow-none" />
+          <textarea placeholder="আপনার মেসেজ..." className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 h-32 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 focus:border-neon-blue outline-none shadow-sm dark:shadow-none" />
+          <button className="w-full py-4 bg-neon-pink text-white dark:text-slate-950 rounded-xl font-bold shadow-lg shadow-neon-pink/30 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
             মেসেজ পাঠান <Send size={20} />
           </button>
         </motion.form>

@@ -1,8 +1,78 @@
-import React from "react";
-import { motion } from "motion/react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, Sparkles } from "lucide-react";
 
+interface AdItem {
+  headerText: string;
+  title: string;
+  category: string;
+}
+
 export default function Hero() {
+  const [settings, setSettings] = useState({
+    adTexts: [] as AdItem[],
+    badgeText: "নতুন কালেকশন চলে এসেছে!",
+    justInText: "JUST IN",
+    buyBtnText: "এখনই কিনুন",
+    promoBtnText: "প্রমোশন দেখুন",
+    stat1Number: "৫০ক+",
+    stat1Label: "সন্তুষ্ট গ্রাহক",
+    stat2Number: "১০ক+",
+    stat2Label: "সেরা পণ্য",
+  });
+
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
+
+  useEffect(() => {
+    const loadSettings = () => {
+      fetch("/data/settings.json?t=" + Date.now(), { cache: "no-store" })
+        .then(res => res.json())
+        .then(data => {
+          if (data) {
+            let normalizedAdTexts = data.adTexts || [];
+            if (normalizedAdTexts.length > 0 && typeof normalizedAdTexts[0] === 'string') {
+              normalizedAdTexts = normalizedAdTexts.map((text: string) => ({
+                headerText: data.badgeText || "নতুন কালেকশন চলে এসেছে!",
+                title: text,
+                category: "সব"
+              }));
+            }
+            setSettings(prev => ({ ...prev, ...data, adTexts: normalizedAdTexts }));
+          }
+        })
+        .catch(() => {});
+    };
+
+    loadSettings();
+
+    const handleUpdate = (e: any) => {
+      if (e.detail) {
+        setSettings(prev => ({ ...prev, ...e.detail }));
+      } else {
+        loadSettings();
+      }
+    };
+    window.addEventListener("settings-updated", handleUpdate);
+    return () => window.removeEventListener("settings-updated", handleUpdate);
+  }, []);
+
+  useEffect(() => {
+    if (settings.adTexts && settings.adTexts.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentAdIndex(prev => (prev + 1) % settings.adTexts.length);
+      }, 4000);
+      return () => clearInterval(timer);
+    }
+  }, [settings.adTexts]);
+
+  const handleAdClick = () => {
+    const currentAd = settings.adTexts && settings.adTexts.length > 0 ? settings.adTexts[currentAdIndex] : null;
+    const targetCat = currentAd ? currentAd.category : "সব";
+    
+    window.dispatchEvent(new CustomEvent("select-category", { detail: targetCat }));
+    document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section className="relative pt-32 pb-20 px-6 overflow-hidden min-h-screen flex items-center">
       {/* Background Glows */}
@@ -19,50 +89,101 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon-blue/30 bg-neon-blue/5 text-neon-blue text-sm font-medium mb-6"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-slate-300 dark:border-neon-blue/40 bg-white dark:bg-neon-blue/5 text-slate-950 dark:text-neon-blue text-xs md:text-sm font-bold mb-6 shadow-sm dark:shadow-none"
           >
-            <Sparkles size={16} />
-            নতুন কালেকশন চলে এসেছে!
+            <Sparkles size={16} className="text-neon-blue" />
+            {settings.badgeText || "নতুন কালেকশন চলে এসেছে!"}
           </motion.div>
           
-          <h1 className="text-5xl md:text-7xl font-bold font-display leading-[1.1] mb-6">
-            আপনার পছন্দের <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue via-neon-purple to-neon-pink animate-gradient">
-              শৈলী খুঁজে নিন
-            </span>
+          <h1 
+            onClick={handleAdClick}
+            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display leading-[1.25] mb-6 text-slate-950 dark:text-white min-h-[80px] cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            {settings.adTexts && settings.adTexts.length > 0 ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentAdIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue via-neon-purple to-neon-pink animate-gradient">
+                    {settings.adTexts[currentAdIndex]?.headerText}
+                  </span>
+                </motion.div>
+              </AnimatePresence>
+            ) : (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue via-neon-purple to-neon-pink animate-gradient">
+                {settings.badgeText || "নতুনত্ব ও প্রিমিয়াম কোয়ালিটি"}
+              </span>
+            )}
           </h1>
           
-          <p className="text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed">
-            সবচেয়ে আধুনিক ফ্যাশন এবং ট্রেন্ডিং পণ্যগুলো এখন আপনার হাতের মুঠোয়। 
-            গ্লাসি ডিজাইন এবং প্রিমিয়াম কোয়ালিটির সাথে নতুনত্বের ছোঁয়া।
-          </p>
+          <div className="min-h-[90px] mb-6 max-w-lg">
+            {settings.adTexts && settings.adTexts.length > 0 ? (
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={currentAdIndex}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-lg text-slate-700 dark:text-white/80 font-medium leading-relaxed"
+                >
+                  {settings.adTexts[currentAdIndex]?.title}
+                </motion.p>
+              </AnimatePresence>
+            ) : (
+              <p className="text-lg text-slate-700 dark:text-white/60 font-medium leading-relaxed">
+                সবচেয়ে আধুনিক ফ্যাশন এবং ট্রেন্ডিং পণ্যগুলো এখন আপনার হাতের মুঠোয়। 
+                গ্লাসি ডিজাইন এবং প্রিমিয়াম কোয়ালিটির সাথে নতুনত্বের ছোঁয়া।
+              </p>
+            )}
+          </div>
+
+          {/* Slide Pagination Indicators */}
+          {settings.adTexts && settings.adTexts.length > 1 && (
+            <div className="flex items-center gap-2 mb-8">
+              {settings.adTexts.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentAdIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentAdIndex ? "w-8 bg-neon-blue shadow-[0_0_12px_rgba(0,242,255,0.8)]" : "w-3 bg-slate-300 dark:bg-white/20 hover:bg-slate-400 dark:hover:bg-white/40"}`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
           
           <div className="flex flex-wrap gap-4">
             <motion.button
+              onClick={handleAdClick}
               whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(0, 242, 255, 0.4)" }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-neon-blue text-white rounded-2xl font-bold flex items-center gap-2 transition-all shadow-xl shadow-neon-blue/30"
+              className="px-8 py-4 bg-neon-blue text-slate-950 rounded-2xl font-black flex items-center gap-2 transition-all shadow-xl shadow-neon-blue/30 cursor-pointer"
             >
-              এখনই কিনুন
+              {settings.buyBtnText || "এখনই কিনুন"}
               <ArrowRight size={20} />
             </motion.button>
             <motion.button
+              onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })}
               whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 glass dark:glass-dark rounded-2xl font-bold transition-all"
+              className="px-8 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-950 dark:text-white rounded-2xl font-bold transition-all shadow-sm dark:shadow-none cursor-pointer"
             >
-              প্রমোশন দেখুন
+              {settings.promoBtnText || "প্রমোশন দেখুন"}
             </motion.button>
           </div>
           
           <div className="mt-12 flex items-center gap-8 border-l-2 border-neon-blue/30 pl-6">
             <div>
-              <div className="text-3xl font-bold">৫০ক+</div>
-              <div className="text-sm text-muted-foreground">সন্তুষ্ট গ্রাহক</div>
+              <div className="text-3xl font-black text-slate-950 dark:text-white">{settings.stat1Number || "৫০ক+"}</div>
+              <div className="text-sm font-bold text-slate-600 dark:text-white/40">{settings.stat1Label || "সন্তুষ্ট গ্রাহক"}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold">১০ক+</div>
-              <div className="text-sm text-muted-foreground">সেরা পণ্য</div>
+              <div className="text-3xl font-black text-slate-950 dark:text-white">{settings.stat2Number || "১০ক+"}</div>
+              <div className="text-sm font-bold text-slate-600 dark:text-white/40">{settings.stat2Label || "সেরা পণ্য"}</div>
             </div>
           </div>
         </motion.div>
@@ -81,7 +202,7 @@ export default function Hero() {
             transition={{ duration: 4, repeat: Infinity }}
             className="absolute top-0 right-0 z-40 bg-white dark:bg-slate-900 px-6 py-3 rounded-2xl shadow-2xl border border-neon-blue/30 lg:translate-x-12 lg:-translate-y-6"
           >
-            <span className="text-sm font-black text-neon-blue italic font-aboreto">JUST IN</span>
+            <span className="text-sm font-black text-neon-blue italic font-aboreto">{settings.justInText || "JUST IN"}</span>
           </motion.div>
         </motion.div>
       </div>

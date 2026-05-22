@@ -21,9 +21,9 @@ export default function CartBubble({ onOpenCheckout }: { onOpenCheckout: () => v
             onClick={onOpenCheckout}
             className="flex flex-col items-center gap-2 glass dark:glass-dark p-4 rounded-[2rem] border-neon-blue/30 shadow-2xl group"
           >
-            <div className="relative p-4 bg-neon-blue text-white rounded-2xl shadow-lg shadow-neon-blue/40">
+            <div className="relative p-4 bg-neon-blue text-slate-950 rounded-2xl shadow-lg shadow-neon-blue/40">
               <ShoppingBag size={24} />
-              <span className="absolute -top-1 -right-1 w-6 h-6 bg-neon-pink rounded-full text-xs flex items-center justify-center font-bold">
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-neon-pink rounded-full text-white dark:text-slate-950 text-xs flex items-center justify-center font-bold">
                 {totalItems}
               </span>
             </div>

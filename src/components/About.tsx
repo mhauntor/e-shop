@@ -18,16 +18,16 @@ export default function About() {
            whileInView={{ opacity: 1, scale: 1 }}
            className="relative"
         >
-          <div className="aspect-video rounded-3xl overflow-hidden glass p-2">
+          <div className="aspect-video rounded-3xl overflow-hidden glass dark:glass-dark p-2">
              <img 
                src="https://placehold.co/1000x600/111111/00f2ff?text=AirFit+Premium" 
                alt="Store" 
                className="w-full h-full object-cover rounded-2xl grayscale hover:grayscale-0 transition-all duration-500"
              />
           </div>
-          <div className="absolute -bottom-8 -right-8 glass p-6 rounded-2xl hidden md:block">
+          <div className="absolute -bottom-8 -right-8 glass dark:glass-dark p-6 rounded-2xl hidden md:block">
             <div className="text-4xl font-bold text-neon-purple">১২+</div>
-            <div className="text-sm font-bold uppercase">বছরের অভিজ্ঞতা</div>
+            <div className="text-sm font-bold uppercase text-slate-900 dark:text-white">বছরের অভিজ্ঞতা</div>
           </div>
         </motion.div>
 

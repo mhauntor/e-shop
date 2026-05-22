@@ -134,6 +134,57 @@ export default defineConfig(({mode}) => {
               }
               return;
             }
+
+            const pathname = req.url?.split('?')[0];
+
+            if (pathname === '/api/settings' && req.method === 'GET') {
+              res.setHeader('Content-Type', 'application/json');
+              const settingsPath = path.resolve(__dirname, 'public/data/settings.json');
+              if (fs.existsSync(settingsPath)) {
+                try {
+                  res.end(fs.readFileSync(settingsPath, 'utf8'));
+                  return;
+                } catch(e) {}
+              }
+              res.end(JSON.stringify({
+                adTexts: [],
+                badgeText: "নতুন কালেকশন চলে এসেছে!",
+                justInText: "JUST IN",
+                buyBtnText: "এখনই কিনুন",
+                promoBtnText: "প্রমোশন দেখুন",
+                stat1Number: "৫০ক+",
+                stat1Label: "সন্তুষ্ট গ্রাহক",
+                stat2Number: "১০ক+",
+                stat2Label: "সেরা পণ্য",
+                heroImageIds: "1, 2, 3, 4, 5, 6, 7, 8",
+                categories: ["সব"]
+              }));
+              return;
+            }
+
+            if (pathname === '/api/settings' && req.method === 'POST') {
+              res.setHeader('Content-Type', 'application/json');
+              try {
+                let body = '';
+                await new Promise((resolve) => {
+                  req.on('data', chunk => { body += chunk; });
+                  req.on('end', resolve);
+                });
+
+                const data = JSON.parse(body);
+                const dataDir = path.resolve(__dirname, 'public/data');
+                if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+                const settingsPath = path.join(dataDir, 'settings.json');
+                fs.writeFileSync(settingsPath, JSON.stringify(data, null, 2));
+
+                res.end(JSON.stringify({ success: true, message: "সেটিংস সফলভাবে সেভ ও সিঙ্ক হয়েছে!" }));
+              } catch (error: any) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ success: false, error: error.message }));
+              }
+              return;
+            }
+
             next();
           });
         }
@@ -150,7 +201,7 @@ export default defineConfig(({mode}) => {
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: {
-        ignored: ['**/public/data/catalog.json'] // Prevent full reload when catalog syncs
+        ignored: ['**/public/data/catalog.json', '**/public/data/settings.json']
       }
     }
   };
