@@ -3,6 +3,8 @@ import { motion } from "motion/react";
 import { ShieldCheck, Zap, Truck, RotateCcw } from "lucide-react";
 
 export default function About() {
+  const siteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "Shukria";
+
   const features = [
     { icon: ShieldCheck, title: "নিরাপদ শপিং", desc: "আমরা আপনার পেমেন্ট এবং তথ্যের সর্বোচ্চ সুরক্ষা নিশ্চিত করি।" },
     { icon: Zap, title: "দ্রুত ডেলিভারি", desc: "সমগ্র বাংলাদেশে ৩-৫ দিনের মধ্যে হোম ডেলিভারি।" },
@@ -20,9 +22,9 @@ export default function About() {
         >
           <div className="aspect-video rounded-3xl overflow-hidden glass dark:glass-dark p-2">
              <img 
-               src="https://placehold.co/1000x600/111111/00f2ff?text=AirFit+Premium" 
-               alt="Store" 
-               className="w-full h-full object-cover rounded-2xl grayscale hover:grayscale-0 transition-all duration-500"
+                src={`https://placehold.co/1000x600/111111/00f2ff?text=${encodeURIComponent(siteName)}+Premium`} 
+                alt="Store" 
+                className="w-full h-full object-cover rounded-2xl grayscale hover:grayscale-0 transition-all duration-500"
              />
           </div>
           <div className="absolute -bottom-8 -right-8 glass dark:glass-dark p-6 rounded-2xl hidden md:block">
