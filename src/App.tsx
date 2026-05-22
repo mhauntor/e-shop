@@ -84,6 +84,11 @@ function HomePage() {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    const siteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "শুকরিয়া শপ";
+    document.title = siteName;
+  }, []);
+
   return (
     <BrowserRouter>
       <ThemeProvider>

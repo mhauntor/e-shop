@@ -844,11 +844,12 @@ export default function Catalog() {
                         </label>
                         <input 
                           type="text" 
-                          placeholder="আপনার নাম লিখুন (ঐচ্ছিক)"
+                          name="name"
                           autoComplete="name"
+                          placeholder="আপনার নাম লিখুন (ঐচ্ছিক)"
                           value={form.name}
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/10 transition-all font-medium text-sm shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm shadow-inner"
                         />
                       </div>
 
@@ -859,19 +860,20 @@ export default function Catalog() {
                         <input 
                           required
                           type="tel" 
-                          placeholder="০১৮XXXXXXXX"
+                          name="phone"
                           autoComplete="tel"
+                          placeholder="০১৮XXXXXXXX"
                           value={form.phone}
-                          maxLength={14} // To allow typing +88 before auto-strip
                           onChange={(e) => {
                             let val = e.target.value.trim();
+                            val = bengaliToEnglishDigits(val);
                             if (val.startsWith("+88")) val = val.slice(3);
                             if (val.startsWith("88")) val = val.slice(2);
                             // Only allow digits and max 11 chars
                             val = val.replace(/\D/g, "").slice(0, 11);
                             setForm({ ...form, phone: val });
                           }}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/10 transition-all font-medium text-sm shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm shadow-inner"
                         />
                       </div>
 
@@ -882,12 +884,13 @@ export default function Catalog() {
                           <MapPin size={12} className="text-neon-blue" /> আপনার পুরো ঠিকানা (শহর, উপজেলা সহ)
                         </label>
                         <textarea 
-                          placeholder="বাসা নং, রোড নং, এলাকা বিস্তারিত লিখুন... (ঐচ্ছিক)"
+                          name="address"
                           autoComplete="street-address"
+                          placeholder="বাসা নং, রোড নং, এলাকা বিস্তারিত লিখুন... (ঐচ্ছিক)"
                           rows={3}
                           value={form.address}
                           onChange={(e) => setForm({ ...form, address: e.target.value })}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/10 transition-all text-sm resize-none shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm resize-none shadow-inner"
                         />
                       </div>
 
@@ -897,10 +900,12 @@ export default function Catalog() {
                         </label>
                         <input 
                           type="text" 
+                          name="note"
+                          autoComplete="off"
                           placeholder="অর্ডার সম্পর্কে কোনো বিশেষ কথা"
                           value={form.note}
                           onChange={(e) => setForm({ ...form, note: e.target.value })}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue transition-all text-sm shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm shadow-inner"
                         />
                       </div>
                       <div className="pt-4">

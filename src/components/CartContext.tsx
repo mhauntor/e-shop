@@ -29,7 +29,11 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("amarDokan_cart");
+      const rawSiteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "AmarDokan";
+      const hasBangla = /[\u0980-\u09FF]/.test(rawSiteName);
+      const cleanKey = hasBangla ? "shukriashop" : rawSiteName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const cartStorageKey = `${cleanKey}_cart`;
+      const saved = localStorage.getItem(cartStorageKey);
       return saved ? JSON.parse(saved) : [];
     }
     return [];
@@ -42,7 +46,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [remainingTime, setRemainingTime] = useState(0);
 
   useEffect(() => {
-    localStorage.setItem("amarDokan_cart", JSON.stringify(cart));
+    const rawSiteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "AmarDokan";
+    const hasBangla = /[\u0980-\u09FF]/.test(rawSiteName);
+    const cleanKey = hasBangla ? "shukriashop" : rawSiteName.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const cartStorageKey = `${cleanKey}_cart`;
+    localStorage.setItem(cartStorageKey, JSON.stringify(cart));
   }, [cart]);
 
   // Cooldown logic
@@ -116,7 +124,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const orderId = `AMR-${Date.now()}`;
+      const rawSiteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "AmarDokan";
+      const hasBangla = /[\u0980-\u09FF]/.test(rawSiteName);
+      const cleanKey = hasBangla ? "shukriashop" : rawSiteName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const prefix = cleanKey.substring(0, 3).toUpperCase();
+      const orderId = `${prefix}-${Date.now()}`;
       const productsStr = cart.map(item => `[ID:${item.id}] ${item.title} (${item.size}) x${item.quantity}`).join(" | ");
       const imagesStr = cart.map(item => item.image).join(" | ");
       const finalTotal = totalPrice + DELIVERY_CHARGE;
