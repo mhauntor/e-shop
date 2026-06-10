@@ -239,16 +239,7 @@ export default function Catalog() {
     return () => window.removeEventListener("settings-updated", handleSettingsUpdate);
   }, []);
 
-  useEffect(() => {
-    const handleSelectCat = (e: any) => {
-      if (e.detail) {
-        setSelectedCategories([e.detail]);
-        setTempCategories([e.detail]);
-      }
-    };
-    window.addEventListener("select-category", handleSelectCat);
-    return () => window.removeEventListener("select-category", handleSelectCat);
-  }, []);
+
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("categories-state-changed", {
@@ -336,6 +327,7 @@ export default function Catalog() {
 
     if (cat === "সব") {
       setFunc(["সব"]);
+      if (!isTemp) setTempCategories(["সব"]);
       return;
     }
     let next = current.filter(c => c !== "সব");
@@ -352,14 +344,26 @@ export default function Catalog() {
         return next.includes("সব") || next.every(sc => cats.includes(sc));
       });
       if (testFiltered.length === 0) {
-        setFunc([cat]);
+        setSelectedCategories([cat]);
+        setTempCategories([cat]);
       } else {
-        setFunc(next);
+        setSelectedCategories(next);
+        setTempCategories(next);
       }
     } else {
-      setFunc(next);
+      setTempCategories(next);
     }
   };
+
+  useEffect(() => {
+    const handleSelectCat = (e: any) => {
+      if (e.detail) {
+        toggleCategory(e.detail, false);
+      }
+    };
+    window.addEventListener("select-category", handleSelectCat);
+    return () => window.removeEventListener("select-category", handleSelectCat);
+  }, [categories, products, selectedCategories]);
 
 
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
