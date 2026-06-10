@@ -91,7 +91,10 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
       <div className="space-y-3">
         {cart.map((item) => (
           <div key={`${item.id}-${item.size}`} className="flex items-center gap-3 bg-white dark:bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <img src={item.image} className="w-10 h-10 object-contain rounded-lg bg-white dark:bg-black border border-slate-100 dark:border-none" />
+            <div className="relative shrink-0 w-10 h-10">
+              <img src={item.image} className="w-full h-full object-contain rounded-lg bg-white dark:bg-black border border-slate-100 dark:border-none" />
+              <img src="/logo-web.png" alt="Logo" className="absolute bottom-0.5 right-0.5 w-3 h-3 object-contain rounded bg-white/70 dark:bg-black/70 p-0.5 border border-white/10 z-20 pointer-events-none" />
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-slate-900 dark:text-white text-xs font-bold truncate leading-[1.8]">{item.title}</p>
               <p className="text-[10px] text-slate-500 dark:text-white/40 leading-[1.8]">{item.price} x {item.quantity}</p>
@@ -410,6 +413,7 @@ export default function ProductCard({
             }}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
+          <img src="/logo-web.png" alt="Logo" className="absolute bottom-1.5 right-1.5 w-5 h-5 sm:w-7 sm:h-7 object-contain rounded-lg bg-white/70 dark:bg-black/70 p-0.5 border border-white/20 shadow-md z-30 pointer-events-none" />
         </div>
 
 
@@ -491,6 +495,7 @@ export default function ProductCard({
                     onClick={() => setShowFullScreen(true)}
                     className="w-full h-full object-cover relative z-10 cursor-zoom-in hover:scale-105 transition-transform duration-700"
                   />
+                  <img src="/logo-web.png" alt="Logo" className="absolute bottom-3 right-3 w-8 h-8 md:w-10 md:h-10 object-contain rounded-xl bg-white/70 dark:bg-black/70 p-1 border border-white/20 shadow-md z-30 pointer-events-none" />
 
                   {/* Thumbnails Overlay */}
                   {productImages.length > 1 && (

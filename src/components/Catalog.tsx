@@ -479,9 +479,9 @@ export default function Catalog() {
         </motion.div>
         
         <div className="flex flex-col items-center text-center gap-6">
-          <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black font-display leading-[1.3] md:leading-[1.1] text-slate-900 dark:text-white tracking-tighter">
-            সেরা পণ্যগুলো <br /> 
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple">খুঁজুন</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display leading-[1.3] md:leading-[1.1] text-slate-900 dark:text-white tracking-tighter">
+            সেরা মানের <br /> 
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple">সকল পণ্য</span>
           </h2>
           <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full mt-2 md:mt-4" />
         </div>
@@ -795,8 +795,9 @@ export default function Catalog() {
                             exit={{ opacity: 0, scale: 0.9 }}
                             className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex items-center gap-3 sm:gap-6 group hover:border-slate-300 dark:hover:border-white/30 transition-all shadow-lg backdrop-blur-md"
                           >
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl flex items-center justify-center p-2 border border-slate-200 dark:border-white/5 shrink-0">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl flex items-center justify-center p-2 border border-slate-200 dark:border-white/5 shrink-0 relative">
                               <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
+                              <img src="/logo-web.png" alt="Logo" className="absolute bottom-1 right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain rounded-md bg-white/70 dark:bg-black/70 p-0.5 border border-white/10 z-20 pointer-events-none" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <h5 className="text-slate-900 dark:text-white font-bold text-sm sm:text-lg mb-0.5 sm:mb-1 truncate leading-[1.6]">{item.title}</h5>
