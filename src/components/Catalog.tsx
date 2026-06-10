@@ -359,6 +359,9 @@ export default function Catalog() {
     const handleSelectCat = (e: any) => {
       if (e.detail) {
         toggleCategory(e.detail, false);
+        setTimeout(() => {
+          document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
       }
     };
     window.addEventListener("select-category", handleSelectCat);

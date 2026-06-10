@@ -194,7 +194,16 @@ export default function Navbar({ onCartClick, onTrackClick, onFilterToggle }: { 
           {categories.map((cat) => (
             <button 
               key={cat}
-              onClick={() => window.dispatchEvent(new CustomEvent("select-category", { detail: cat }))}
+              onClick={() => {
+                if (location.pathname !== "/") {
+                  navigate("/");
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent("select-category", { detail: cat }));
+                  }, 300);
+                } else {
+                  window.dispatchEvent(new CustomEvent("select-category", { detail: cat }));
+                }
+              }}
               className={cn(
                 "px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] sm:text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
                 selectedCategories.includes(cat)
