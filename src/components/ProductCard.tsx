@@ -63,7 +63,8 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
           <CheckCircle className="text-slate-900 dark:text-white" size={32} />
         </div>
         <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">অর্ডার সফল হয়েছে!</h3>
-        <p className="text-slate-600 dark:text-white/60 text-sm mb-4">অর্ডার আইডি: <span className="text-neon-blue font-bold">{orderSuccess}</span></p>
+        <p className="text-slate-600 dark:text-white/60 text-sm mb-2">অর্ডার আইডি: <span className="text-neon-blue font-bold">{orderSuccess}</span></p>
+        <p className="text-slate-600 dark:text-white/60 text-sm mb-4">কিছু ক্ষণের ভিতর আমাদের প্রতিনিধি আপনার সাথে যোগাযোগ করবেন। ইনশাআল্লাহ</p>
         <button 
           onClick={() => { setOrderSuccess(null); setIsAdded(false); }}
           className="text-xs font-black uppercase tracking-widest text-neon-blue hover:underline"

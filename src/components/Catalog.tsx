@@ -14,23 +14,23 @@ const getCategoryMapping = (cats: string[]) => {
   const sortedCats = [...cats]
     .filter(c => c !== "সব")
     .sort((a, b) => a.localeCompare(b, "bn"));
-  
+
   const mapping: { [key: string]: string } = { "সব": "all" };
   const reverseMapping: { [key: string]: string } = { "all": "সব" };
-  
+
   sortedCats.forEach((cat, index) => {
     const id = `category${String(index + 1).padStart(2, '0')}`;
     mapping[cat] = id;
     reverseMapping[id] = cat;
   });
-  
+
   return { mapping, reverseMapping };
 };
 
 export default function Catalog() {
-  const { 
-    cart, updateQuantity, removeFromCart, totalPrice, clearCart, 
-    submitOrder, isCooldownActive, remainingTime, deliveryCharge 
+  const {
+    cart, updateQuantity, removeFromCart, totalPrice, clearCart,
+    submitOrder, isCooldownActive, remainingTime, deliveryCharge
   } = useCart();
   const [products, setProducts] = useState<any[]>(() => {
     try {
@@ -40,7 +40,7 @@ export default function Catalog() {
         const parsed = JSON.parse(cachedData);
         return [...parsed.catalog].sort(() => Math.random() - 0.5);
       }
-    } catch(e) {}
+    } catch (e) { }
     return [];
   });
   const [categories, setCategories] = useState<string[]>(() => {
@@ -51,7 +51,7 @@ export default function Catalog() {
         const parsed = JSON.parse(cachedData);
         return Array.from(new Set(["সব", ...parsed.catalog.flatMap((p: any) => p.Category)]));
       }
-    } catch(e) {}
+    } catch (e) { }
     return ["সব"];
   });
   const [groupImages, setGroupImages] = useState<string[]>([]);
@@ -67,10 +67,10 @@ export default function Catalog() {
       if (cachedData && cacheTime && (Date.now() - Number(cacheTime)) < 24 * 60 * 60 * 1000) {
         return false;
       }
-    } catch(e) {}
+    } catch (e) { }
     return true;
   });
-  
+
   // Temporary states for the modal
   const [tempSearch, setTempSearch] = useState("");
   const [tempMin, setTempMin] = useState(0);
@@ -79,10 +79,10 @@ export default function Catalog() {
 
 
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  
+
   const catalogRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(false);
-  const [orderSuccessData, setOrderSuccessData] = useState<{id: string} | null>(null);
+  const [orderSuccessData, setOrderSuccessData] = useState<{ id: string } | null>(null);
   const [isGiftEnabled] = useState((import.meta as any).env.VITE_GIFT_ENABLED === "true");
   const [isGiftClaimed, setIsGiftClaimed] = useState(false);
   const [giftCountdown, setGiftCountdown] = useState(570); // 9:30 in seconds
@@ -131,7 +131,7 @@ export default function Catalog() {
         // 1. Try Cache First (Fastest)
         const cachedData = localStorage.getItem("catalog_cache");
         const cacheTime = localStorage.getItem("catalog_cache_time");
-        
+
         // If cache is less than 24 hours old, use it immediately
         if (cachedData && cacheTime && (Date.now() - Number(cacheTime)) < 24 * 60 * 60 * 1000) {
           const parsed = JSON.parse(cachedData);
@@ -196,7 +196,7 @@ export default function Catalog() {
       });
 
       setProducts([...sanitizedCatalog].sort(() => Math.random() - 0.5));
-      
+
       let finalCategories = Array.from(allCats);
       let heroImages = [
         ...sanitizedCatalog.map((p: any) => p.Image_Link),
@@ -220,7 +220,7 @@ export default function Catalog() {
             }
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       setCategories(finalCategories);
       window.dispatchEvent(new CustomEvent("hero-images-updated", { detail: heroImages }));
@@ -291,7 +291,7 @@ export default function Catalog() {
   useEffect(() => {
     if (isLoading) return;
     const currentPath = window.location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
-    
+
     if (expandedId) {
       if (currentPath !== String(expandedId).toLowerCase()) {
         window.history.pushState(null, "", `/${expandedId}`);
@@ -337,7 +337,7 @@ export default function Catalog() {
     } else {
       next = [...next, cat];
     }
-    
+
     if (!isTemp) {
       const testFiltered = products.filter(p => {
         const cats = Array.isArray(p.Category) ? p.Category : [p.Category];
@@ -395,7 +395,7 @@ export default function Catalog() {
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || isCooldownActive) return;
-    
+
     let cleanPhone = bengaliToEnglishDigits(form.phone.trim());
     if (cleanPhone.startsWith("+88")) cleanPhone = cleanPhone.slice(3);
     if (cleanPhone.startsWith("88")) cleanPhone = cleanPhone.slice(2);
@@ -470,17 +470,17 @@ export default function Catalog() {
   return (
     <section ref={catalogRef} id="catalog" className="py-20 px-1 sm:px-10 w-full min-h-[1000px] sm:min-h-screen">
       <div className="flex flex-col mb-16 max-w-7xl mx-auto px-4 sm:px-0">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           className="text-neon-purple font-black uppercase tracking-widest text-sm mb-4"
         >
           আমাদের কালেকশন
         </motion.div>
-        
+
         <div className="flex flex-col items-center text-center gap-6">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display leading-[1.3] md:leading-[1.1] text-slate-900 dark:text-white tracking-tighter">
-            সেরা মানের <br /> 
+            সেরা মানের <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple">সকল পণ্য</span>
           </h2>
           <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full mt-2 md:mt-4" />
@@ -511,7 +511,7 @@ export default function Catalog() {
                       <SlidersHorizontal className="text-neon-blue" size={20} /> ফিল্টার
                     </h3>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setIsFilterPanelOpen(false)}
                     className="w-10 h-10 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center text-slate-500 dark:text-white/30 hover:text-slate-900 dark:hover:text-white transition-all"
                   >
@@ -525,8 +525,8 @@ export default function Catalog() {
                     <span className="text-[9px] uppercase font-black tracking-[0.2em] text-slate-500 dark:text-white/40">পণ্য খুঁজুন</span>
                     <div className="relative">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="কি খুঁজতে চাচ্ছেন?"
                         value={tempSearch}
                         onChange={(e) => setTempSearch(e.target.value)}
@@ -540,27 +540,27 @@ export default function Catalog() {
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] uppercase font-black tracking-[0.2em] text-slate-500 dark:text-white/40">মূল্যর পরিসীমা</span>
                       <div className="flex items-center gap-1.5">
-                         <span className="text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/5 px-2 py-1 rounded border border-slate-200 dark:border-white/5">{tempMin}৳</span>
-                         <span className="text-slate-400 dark:text-white/20">-</span>
-                         <span className="text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/5 px-2 py-1 rounded border border-slate-200 dark:border-white/5">{tempMax}৳</span>
+                        <span className="text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/5 px-2 py-1 rounded border border-slate-200 dark:border-white/5">{tempMin}৳</span>
+                        <span className="text-slate-400 dark:text-white/20">-</span>
+                        <span className="text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/5 px-2 py-1 rounded border border-slate-200 dark:border-white/5">{tempMax}৳</span>
                       </div>
                     </div>
-                    
+
                     <div className="relative h-6 flex items-center mt-2 group">
                       {/* Range Track */}
                       <div className="absolute w-full h-1 bg-slate-200 dark:bg-white/5 rounded-full" />
-                      
+
                       {/* Active Range Highlight */}
-                      <div 
+                      <div
                         className="absolute h-1 bg-neon-blue rounded-full"
                         style={{
                           left: `${(tempMin / 50000) * 100}%`,
                           width: `${((tempMax - tempMin) / 50000) * 100}%`
                         }}
                       />
-                      
+
                       {/* Min Thumb */}
-                      <input 
+                      <input
                         type="range"
                         min="0"
                         max="50000"
@@ -572,7 +572,7 @@ export default function Catalog() {
                       />
 
                       {/* Max Thumb */}
-                      <input 
+                      <input
                         type="range"
                         min="0"
                         max="50000"
@@ -588,15 +588,15 @@ export default function Catalog() {
                   <div className="space-y-3">
                     <span className="text-[9px] uppercase font-black tracking-[0.2em] text-slate-500 dark:text-white/40">ক্যাটাগরি</span>
                     <div className="flex flex-wrap gap-2">
-                       {categories.map((cat) => (
-                        <button 
+                      {categories.map((cat) => (
+                        <button
                           key={cat}
                           onClick={() => toggleCategory(cat, true)}
                           className={cn(
                             "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border",
                             tempCategories.includes(cat)
-                            ? "bg-neon-blue text-slate-950 border-neon-blue shadow-lg" 
-                            : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/40 border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/10"
+                              ? "bg-neon-blue text-slate-950 border-neon-blue shadow-lg"
+                              : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/40 border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/10"
                           )}
                         >
                           {cat}
@@ -609,7 +609,7 @@ export default function Catalog() {
                 </div>
 
                 <div className="flex gap-3 mt-8 pt-6 border-t border-slate-200 dark:border-white/5">
-                  <button 
+                  <button
                     onClick={() => {
                       setTempSearch("");
                       setTempMin(0);
@@ -621,7 +621,7 @@ export default function Catalog() {
                   >
                     রিসেট
                   </button>
-                  <button 
+                  <button
                     onClick={applyFilters}
                     className="flex-[2] bg-neon-blue text-slate-950 font-black py-3.5 rounded-xl shadow-lg shadow-neon-blue/20 transition-transform active:scale-95 text-[10px] uppercase tracking-widest"
                   >
@@ -655,7 +655,7 @@ export default function Catalog() {
                   expandedId === product.id ? "z-[100]" : "z-10"
                 )}
               >
-                <ProductCard 
+                <ProductCard
                   id={product.id}
                   title={product.title}
                   price={`${product.Price} ৳`}
@@ -679,7 +679,7 @@ export default function Catalog() {
             ))
           ) : (
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="col-span-full py-20 text-center flex flex-col items-center gap-4"
@@ -691,7 +691,7 @@ export default function Catalog() {
               <p className="text-sm text-slate-500 dark:text-white/40 max-w-sm">
                 আপনার খোঁজা ক্যাটাগরি বা ফিল্টারের সাথে মিল রয়েছে এমন কোনো পণ্য পাওয়া যায়নি।
               </p>
-              <button 
+              <button
                 onClick={() => { setSelectedCategories(["সব"]); setSearchTerm(""); }}
                 className="mt-4 px-6 py-2.5 bg-neon-blue text-slate-950 font-bold rounded-xl hover:opacity-90 transition-opacity text-xs uppercase tracking-widest"
               >
@@ -704,26 +704,26 @@ export default function Catalog() {
 
       <AnimatePresence>
         {cart.length > 0 && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 100 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            id="checkout-panel" 
+            id="checkout-panel"
             className="mt-20 md:mt-40 bg-white/80 dark:bg-black/60 backdrop-blur-[60px] p-6 sm:p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] border border-slate-200 dark:border-white/20 relative overflow-hidden shadow-2xl dark:shadow-[0_0_100px_rgba(0,242,255,0.1)]"
           >
             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-neon-blue/5 to-neon-purple/5 pointer-events-none" />
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-neon-blue/10 blur-[120px] -z-10 animate-pulse" />
-            
+
             <div className="max-w-6xl mx-auto relative z-10">
               <div className="text-center mb-16">
-                <motion.div 
+                <motion.div
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
                   className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neon-blue/20 text-neon-blue mb-6 border border-neon-blue/30"
                 >
                   <CheckCircle size={32} />
                 </motion.div>
-                <motion.h3 
+                <motion.h3
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -737,7 +737,7 @@ export default function Catalog() {
                 {/* Timer & Gift Claim */}
                 {isGiftEnabled && (
                   <div className="mt-10 flex flex-col items-center gap-6">
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       className="bg-neon-pink/10 border border-neon-pink/20 px-6 py-3 rounded-2xl flex items-center gap-3 backdrop-blur-md"
@@ -747,7 +747,7 @@ export default function Catalog() {
                         অফার শেষ হতে আর মাত্র <span className="bg-neon-pink text-white px-2 py-0.5 rounded ml-1">{formatTime(giftCountdown)}</span> মিনিট বাকি! দ্রুত অর্ডার কনফার্ম করুন।
                       </span>
                     </motion.div>
-                    
+
                     {!isGiftClaimed ? (
                       <motion.button
                         whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(0, 242, 255, 0.3)" }}
@@ -762,7 +762,7 @@ export default function Catalog() {
                         আপনার গিফট ক্লেইম করুন
                       </motion.button>
                     ) : (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-neon-blue/10 border border-neon-blue/20 px-8 py-4 rounded-2xl text-neon-blue font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-3 backdrop-blur-md"
@@ -787,7 +787,7 @@ export default function Catalog() {
                     <AnimatePresence>
                       {cart.length > 0 ? (
                         cart.map((item) => (
-                          <motion.div 
+                          <motion.div
                             key={`${item.id}-${item.size}`}
                             layout
                             initial={{ opacity: 0, x: -20 }}
@@ -814,21 +814,21 @@ export default function Catalog() {
                               </div>
                             </div>
                             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 bg-slate-200 dark:bg-black/40 p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border border-slate-300 dark:border-white/10">
-                              <button 
+                              <button
                                 onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
                                 className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-white dark:bg-white/5 rounded-lg sm:rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-900 dark:text-white"
                               >
                                 <Minus size={12} />
                               </button>
                               <span className="w-4 text-center font-bold text-slate-900 dark:text-white text-[10px] sm:text-sm">{item.quantity}</span>
-                              <button 
+                              <button
                                 onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
                                 className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-white dark:bg-white/5 rounded-lg sm:rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-900 dark:text-white"
                               >
                                 <Plus size={12} />
                               </button>
                             </div>
-                            <button 
+                            <button
                               onClick={() => removeFromCart(item.id, item.size)}
                               className="w-10 h-10 flex items-center justify-center text-slate-400 dark:text-white/20 hover:text-red-500 transition-colors"
                             >
@@ -865,7 +865,7 @@ export default function Catalog() {
                 {/* 2. Form */}
                 <div className="w-full lg:w-[450px]">
                   <div className="bg-white dark:bg-white/5 p-8 rounded-[3rem] border-2 border-slate-200 dark:border-white/10 relative shadow-2xl backdrop-blur-3xl">
-                    <form 
+                    <form
                       onSubmit={handleOrderSubmit}
                       className="space-y-4"
                     >
@@ -873,8 +873,8 @@ export default function Catalog() {
                         <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 dark:text-white/60 flex items-center gap-2 mb-2 ml-2">
                           <User size={12} className="text-neon-blue" /> আপনার নাম
                         </label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="name"
                           autoComplete="name"
                           placeholder="আপনার নাম লিখুন (ঐচ্ছিক)"
@@ -888,9 +888,9 @@ export default function Catalog() {
                         <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 dark:text-white/60 flex items-center gap-2 mb-2 ml-2">
                           <Phone size={12} className="text-neon-blue" /> ফোন নম্বর
                         </label>
-                        <input 
+                        <input
                           required
-                          type="tel" 
+                          type="tel"
                           name="phone"
                           autoComplete="tel"
                           placeholder="০১৮XXXXXXXX"
@@ -914,7 +914,7 @@ export default function Catalog() {
                         <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 dark:text-white/60 flex items-center gap-2 mb-2 ml-2">
                           <MapPin size={12} className="text-neon-blue" /> আপনার পুরো ঠিকানা (শহর, উপজেলা সহ)
                         </label>
-                        <textarea 
+                        <textarea
                           name="address"
                           autoComplete="street-address"
                           placeholder="বাসা নং, রোড নং, এলাকা বিস্তারিত লিখুন... (ঐচ্ছিক)"
@@ -929,8 +929,8 @@ export default function Catalog() {
                         <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 dark:text-white/60 flex items-center gap-2 mb-2 ml-2">
                           <Notebook size={12} className="text-neon-blue" /> অর্ডার নোট (ঐচ্ছিক)
                         </label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="note"
                           autoComplete="off"
                           placeholder="অর্ডার সম্পর্কে কোনো বিশেষ কথা"
@@ -940,7 +940,7 @@ export default function Catalog() {
                         />
                       </div>
                       <div className="pt-4">
-                        <button 
+                        <button
                           type="submit"
                           disabled={cart.length === 0 || isCooldownActive || isSubmitting}
                           className="w-full relative group disabled:opacity-50 disabled:cursor-not-allowed"
@@ -964,14 +964,14 @@ export default function Catalog() {
       <AnimatePresence>
         {orderSuccessData && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/60 dark:bg-black/90 backdrop-blur-xl"
               onClick={() => setOrderSuccessData(null)}
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -984,15 +984,15 @@ export default function Catalog() {
               <p className="text-slate-600 dark:text-white/60 mb-8">
                 আপনার অর্ডার আইডি: <span className="text-neon-blue font-black">{orderSuccessData.id}</span>
                 <br />
-                অল্প সময়ের মধ্যে আমাদের প্রতিনিধি আপনার সাথে যোগাযোগ করবেন।
+                কিছু ক্ষণের ভিতর আমাদের প্রতিনিধি আপনার সাথে যোগাযোগ করবেন। ইনশাআল্লাহ
               </p>
-              
+
               <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl p-6 mb-8">
                 <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-white/40 mb-2">পরবর্তী অর্ডারের জন্য অপেক্ষা</p>
                 <div className="text-3xl font-black text-slate-900 dark:text-white font-display">{formatTime(remainingTime)}</div>
               </div>
 
-              <button 
+              <button
                 onClick={() => setOrderSuccessData(null)}
                 className="w-full py-4 bg-neon-blue text-slate-950 font-black rounded-xl shadow-lg shadow-neon-blue/20 hover:scale-105 transition-all"
               >
