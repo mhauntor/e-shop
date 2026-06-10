@@ -9,6 +9,24 @@ import { useCart } from "./CartContext";
 const INITIAL_PRODUCTS: any[] = [];
 
 
+// Helper to get category mapping (Bengali category names to English IDs)
+const getCategoryMapping = (cats: string[]) => {
+  const sortedCats = [...cats]
+    .filter(c => c !== "সব")
+    .sort((a, b) => a.localeCompare(b, "bn"));
+  
+  const mapping: { [key: string]: string } = { "সব": "all" };
+  const reverseMapping: { [key: string]: string } = { "all": "সব" };
+  
+  sortedCats.forEach((cat, index) => {
+    const id = `category${String(index + 1).padStart(2, '0')}`;
+    mapping[cat] = id;
+    reverseMapping[id] = cat;
+  });
+  
+  return { mapping, reverseMapping };
+};
+
 export default function Catalog() {
   const { 
     cart, updateQuantity, removeFromCart, totalPrice, clearCart, 
@@ -68,6 +86,8 @@ export default function Catalog() {
   const [isGiftEnabled] = useState((import.meta as any).env.VITE_GIFT_ENABLED === "true");
   const [isGiftClaimed, setIsGiftClaimed] = useState(false);
   const [giftCountdown, setGiftCountdown] = useState(570); // 9:30 in seconds
+
+  const { mapping, reverseMapping } = getCategoryMapping(categories);
 
   // Removed redundant cooldown logic (now in CartContext)
 
@@ -254,10 +274,10 @@ export default function Catalog() {
         return;
       }
 
-      // 2. Check if it's a category
-      const categoryMatch = categories.find(c => c.toLowerCase() === pathId);
-      if (categoryMatch) {
-        setSelectedCategories([categoryMatch]);
+      // 2. Check if it's a mapped category
+      const matchedCategoryName = reverseMapping[pathId];
+      if (matchedCategoryName) {
+        setSelectedCategories([matchedCategoryName]);
         setExpandedId(null);
         setTimeout(() => {
           document.getElementById("catalog")?.scrollIntoView({ behavior: "instant" });
@@ -286,9 +306,12 @@ export default function Catalog() {
         window.history.pushState(null, "", `/${expandedId}`);
       }
     } else if (selectedCategories.length === 1 && selectedCategories[0] !== "সব") {
-      const catPath = selectedCategories[0].toLowerCase();
-      if (currentPath !== catPath) {
-        window.history.pushState(null, "", `/${catPath}`);
+      const catId = mapping[selectedCategories[0]];
+      if (catId) {
+        const catPath = catId.toLowerCase();
+        if (currentPath !== catPath) {
+          window.history.pushState(null, "", `/${catPath}`);
+        }
       }
     } else if (!expandedId && selectedCategories[0] === "সব" && currentPath) {
       // Don't redirect to home if we are on a page like /about or /contact
