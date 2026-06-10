@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { trackEvent } from "../lib/pixel";
 
 export interface CartItem {
   id: string | number;
@@ -29,7 +30,11 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("amarDokan_cart");
+      const rawSiteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "AmarDokan";
+      const hasBangla = /[\u0980-\u09FF]/.test(rawSiteName);
+      const cleanKey = hasBangla ? "shukriashop" : rawSiteName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const cartStorageKey = `${cleanKey}_cart`;
+      const saved = localStorage.getItem(cartStorageKey);
       return saved ? JSON.parse(saved) : [];
     }
     return [];
@@ -42,7 +47,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [remainingTime, setRemainingTime] = useState(0);
 
   useEffect(() => {
-    localStorage.setItem("amarDokan_cart", JSON.stringify(cart));
+    const rawSiteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "AmarDokan";
+    const hasBangla = /[\u0980-\u09FF]/.test(rawSiteName);
+    const cleanKey = hasBangla ? "shukriashop" : rawSiteName.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const cartStorageKey = `${cleanKey}_cart`;
+    localStorage.setItem(cartStorageKey, JSON.stringify(cart));
   }, [cart]);
 
   // Cooldown logic
@@ -76,6 +85,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [isCooldownActive, remainingTime]);
 
   const addToCart = (product: any) => {
+    // Extract number from price string like "494.1 ৳"
+    // Replace everything except digits and dot, then parse and round
+    const priceNum = Math.round(parseFloat(product.price.replace(/[^\d.]/g, "")) || 0);
+
+    // Track Facebook Pixel event
+    trackEvent("AddToCart", {
+      content_ids: [String(product.id)],
+      content_name: product.title,
+      content_type: "product",
+      value: priceNum * (product.quantity || 1),
+      currency: "BDT"
+    });
+
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id && item.size === product.size);
       if (existing) {
@@ -85,9 +107,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             : item
         );
       }
-      // Extract number from price string like "494.1 ৳"
-      // Replace everything except digits and dot, then parse and round
-      const priceNum = Math.round(parseFloat(product.price.replace(/[^\d.]/g, "")) || 0);
       return [...prev, { ...product, priceNum, quantity: product.quantity || 1 }];
     });
   };
@@ -116,7 +135,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const orderId = `AMR-${Date.now()}`;
+      const rawSiteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "AmarDokan";
+      const hasBangla = /[\u0980-\u09FF]/.test(rawSiteName);
+      const cleanKey = hasBangla ? "shukriashop" : rawSiteName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const prefix = cleanKey.substring(0, 3).toUpperCase();
+      const orderId = `${prefix}-${Date.now()}`;
       const productsStr = cart.map(item => `[ID:${item.id}] ${item.title} (${item.size}) x${item.quantity}`).join(" | ");
       const imagesStr = cart.map(item => item.image).join(" | ");
       const finalTotal = totalPrice + DELIVERY_CHARGE;
@@ -146,6 +169,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       const data = await res.json();
       if (data.success) {
+        // Track Purchase event before clearing the cart
+        trackEvent("Purchase", {
+          content_type: "product",
+          content_ids: cart.map(item => String(item.id)),
+          value: finalTotal,
+          currency: "BDT",
+          num_items: totalItems
+        });
+
         clearCart();
         const now = Date.now();
         localStorage.setItem("last_order_time", now.toString());

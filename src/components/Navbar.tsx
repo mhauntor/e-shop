@@ -12,6 +12,8 @@ export default function Navbar({ onCartClick, onTrackClick, onFilterToggle }: { 
   const { totalItems } = useCart();
   const location = useLocation();
 
+  const siteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "শুকরিয়া শপ";
+
   const [categories, setCategories] = useState<string[]>(["সব"]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["সব"]);
 
@@ -73,12 +75,12 @@ export default function Navbar({ onCartClick, onTrackClick, onFilterToggle }: { 
           <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
             <motion.div 
               whileHover={{ scale: 1.1, rotate: -10 }}
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neon-blue flex items-center justify-center text-slate-950 shadow-[0_0_20px_rgba(0,242,255,0.4)]"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl overflow-hidden bg-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(0,242,255,0.2)] border border-neon-blue/20"
             >
-              <ShoppingCart size={18} className="sm:w-5 sm:h-5" />
+              <img src="/logo-web.png" alt="Logo" className="w-full h-full object-cover" />
             </motion.div>
             <span className="text-base sm:text-xl font-black font-display tracking-tight text-slate-950 dark:text-white hidden xs:block">
-              AMAR<span className="text-neon-blue">DOKAN</span>
+              {siteName}
             </span>
           </Link>
 
@@ -192,7 +194,16 @@ export default function Navbar({ onCartClick, onTrackClick, onFilterToggle }: { 
           {categories.map((cat) => (
             <button 
               key={cat}
-              onClick={() => window.dispatchEvent(new CustomEvent("select-category", { detail: cat }))}
+              onClick={() => {
+                if (location.pathname !== "/") {
+                  navigate("/");
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent("select-category", { detail: cat }));
+                  }, 300);
+                } else {
+                  window.dispatchEvent(new CustomEvent("select-category", { detail: cat }));
+                }
+              }}
               className={cn(
                 "px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] sm:text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
                 selectedCategories.includes(cat)

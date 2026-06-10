@@ -3,6 +3,11 @@ import { motion } from "motion/react";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 
 export default function Contact() {
+  const rawSiteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "AmarDokan";
+  const hasBangla = /[\u0980-\u09FF]/.test(rawSiteName);
+  const cleanName = hasBangla ? "shukriashop" : rawSiteName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const contactEmail = `support@${cleanName}.com`;
+
   return (
     <section id="contact" className="py-20 px-6 max-w-7xl mx-auto">
       <div className="text-center mb-16">
@@ -39,7 +44,7 @@ export default function Contact() {
             </div>
             <div>
               <h4 className="font-bold text-lg mb-1">ইমেল করুন</h4>
-              <p className="text-muted-foreground">support@amardokan.com</p>
+              <p className="text-muted-foreground">{contactEmail}</p>
             </div>
           </div>
 

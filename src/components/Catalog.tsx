@@ -9,6 +9,24 @@ import { useCart } from "./CartContext";
 const INITIAL_PRODUCTS: any[] = [];
 
 
+// Helper to get category mapping (Bengali category names to English IDs)
+const getCategoryMapping = (cats: string[]) => {
+  const sortedCats = [...cats]
+    .filter(c => c !== "সব")
+    .sort((a, b) => a.localeCompare(b, "bn"));
+  
+  const mapping: { [key: string]: string } = { "সব": "all" };
+  const reverseMapping: { [key: string]: string } = { "all": "সব" };
+  
+  sortedCats.forEach((cat, index) => {
+    const id = `category${String(index + 1).padStart(2, '0')}`;
+    mapping[cat] = id;
+    reverseMapping[id] = cat;
+  });
+  
+  return { mapping, reverseMapping };
+};
+
 export default function Catalog() {
   const { 
     cart, updateQuantity, removeFromCart, totalPrice, clearCart, 
@@ -68,6 +86,8 @@ export default function Catalog() {
   const [isGiftEnabled] = useState((import.meta as any).env.VITE_GIFT_ENABLED === "true");
   const [isGiftClaimed, setIsGiftClaimed] = useState(false);
   const [giftCountdown, setGiftCountdown] = useState(570); // 9:30 in seconds
+
+  const { mapping, reverseMapping } = getCategoryMapping(categories);
 
   // Removed redundant cooldown logic (now in CartContext)
 
@@ -219,16 +239,7 @@ export default function Catalog() {
     return () => window.removeEventListener("settings-updated", handleSettingsUpdate);
   }, []);
 
-  useEffect(() => {
-    const handleSelectCat = (e: any) => {
-      if (e.detail) {
-        setSelectedCategories([e.detail]);
-        setTempCategories([e.detail]);
-      }
-    };
-    window.addEventListener("select-category", handleSelectCat);
-    return () => window.removeEventListener("select-category", handleSelectCat);
-  }, []);
+
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("categories-state-changed", {
@@ -254,10 +265,10 @@ export default function Catalog() {
         return;
       }
 
-      // 2. Check if it's a category
-      const categoryMatch = categories.find(c => c.toLowerCase() === pathId);
-      if (categoryMatch) {
-        setSelectedCategories([categoryMatch]);
+      // 2. Check if it's a mapped category
+      const matchedCategoryName = reverseMapping[pathId];
+      if (matchedCategoryName) {
+        setSelectedCategories([matchedCategoryName]);
         setExpandedId(null);
         setTimeout(() => {
           document.getElementById("catalog")?.scrollIntoView({ behavior: "instant" });
@@ -286,9 +297,12 @@ export default function Catalog() {
         window.history.pushState(null, "", `/${expandedId}`);
       }
     } else if (selectedCategories.length === 1 && selectedCategories[0] !== "সব") {
-      const catPath = selectedCategories[0].toLowerCase();
-      if (currentPath !== catPath) {
-        window.history.pushState(null, "", `/${catPath}`);
+      const catId = mapping[selectedCategories[0]];
+      if (catId) {
+        const catPath = catId.toLowerCase();
+        if (currentPath !== catPath) {
+          window.history.pushState(null, "", `/${catPath}`);
+        }
       }
     } else if (!expandedId && selectedCategories[0] === "সব" && currentPath) {
       // Don't redirect to home if we are on a page like /about or /contact
@@ -313,6 +327,7 @@ export default function Catalog() {
 
     if (cat === "সব") {
       setFunc(["সব"]);
+      if (!isTemp) setTempCategories(["সব"]);
       return;
     }
     let next = current.filter(c => c !== "সব");
@@ -329,14 +344,29 @@ export default function Catalog() {
         return next.includes("সব") || next.every(sc => cats.includes(sc));
       });
       if (testFiltered.length === 0) {
-        setFunc([cat]);
+        setSelectedCategories([cat]);
+        setTempCategories([cat]);
       } else {
-        setFunc(next);
+        setSelectedCategories(next);
+        setTempCategories(next);
       }
     } else {
-      setFunc(next);
+      setTempCategories(next);
     }
   };
+
+  useEffect(() => {
+    const handleSelectCat = (e: any) => {
+      if (e.detail) {
+        toggleCategory(e.detail, false);
+        setTimeout(() => {
+          document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    };
+    window.addEventListener("select-category", handleSelectCat);
+    return () => window.removeEventListener("select-category", handleSelectCat);
+  }, [categories, products, selectedCategories]);
 
 
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -449,9 +479,9 @@ export default function Catalog() {
         </motion.div>
         
         <div className="flex flex-col items-center text-center gap-6">
-          <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black font-display leading-[1.3] md:leading-[1.1] text-slate-900 dark:text-white tracking-tighter">
-            সেরা পণ্যগুলো <br /> 
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple">খুঁজুন</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display leading-[1.3] md:leading-[1.1] text-slate-900 dark:text-white tracking-tighter">
+            সেরা মানের <br /> 
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple">সকল পণ্য</span>
           </h2>
           <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full mt-2 md:mt-4" />
         </div>
@@ -765,8 +795,9 @@ export default function Catalog() {
                             exit={{ opacity: 0, scale: 0.9 }}
                             className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex items-center gap-3 sm:gap-6 group hover:border-slate-300 dark:hover:border-white/30 transition-all shadow-lg backdrop-blur-md"
                           >
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl flex items-center justify-center p-2 border border-slate-200 dark:border-white/5 shrink-0">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl flex items-center justify-center p-2 border border-slate-200 dark:border-white/5 shrink-0 relative">
                               <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
+                              <img src="/logo-web.png" alt="Logo" className="absolute bottom-1 right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain rounded-md bg-white/70 dark:bg-black/70 p-0.5 border border-white/10 z-20 pointer-events-none" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <h5 className="text-slate-900 dark:text-white font-bold text-sm sm:text-lg mb-0.5 sm:mb-1 truncate leading-[1.6]">{item.title}</h5>
@@ -844,11 +875,12 @@ export default function Catalog() {
                         </label>
                         <input 
                           type="text" 
-                          placeholder="আপনার নাম লিখুন (ঐচ্ছিক)"
+                          name="name"
                           autoComplete="name"
+                          placeholder="আপনার নাম লিখুন (ঐচ্ছিক)"
                           value={form.name}
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/10 transition-all font-medium text-sm shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm shadow-inner"
                         />
                       </div>
 
@@ -859,19 +891,20 @@ export default function Catalog() {
                         <input 
                           required
                           type="tel" 
-                          placeholder="০১৮XXXXXXXX"
+                          name="phone"
                           autoComplete="tel"
+                          placeholder="০১৮XXXXXXXX"
                           value={form.phone}
-                          maxLength={14} // To allow typing +88 before auto-strip
                           onChange={(e) => {
                             let val = e.target.value.trim();
+                            val = bengaliToEnglishDigits(val);
                             if (val.startsWith("+88")) val = val.slice(3);
                             if (val.startsWith("88")) val = val.slice(2);
                             // Only allow digits and max 11 chars
                             val = val.replace(/\D/g, "").slice(0, 11);
                             setForm({ ...form, phone: val });
                           }}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/10 transition-all font-medium text-sm shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm shadow-inner"
                         />
                       </div>
 
@@ -882,12 +915,13 @@ export default function Catalog() {
                           <MapPin size={12} className="text-neon-blue" /> আপনার পুরো ঠিকানা (শহর, উপজেলা সহ)
                         </label>
                         <textarea 
-                          placeholder="বাসা নং, রোড নং, এলাকা বিস্তারিত লিখুন... (ঐচ্ছিক)"
+                          name="address"
                           autoComplete="street-address"
+                          placeholder="বাসা নং, রোড নং, এলাকা বিস্তারিত লিখুন... (ঐচ্ছিক)"
                           rows={3}
                           value={form.address}
                           onChange={(e) => setForm({ ...form, address: e.target.value })}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/10 transition-all text-sm resize-none shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm resize-none shadow-inner"
                         />
                       </div>
 
@@ -897,10 +931,12 @@ export default function Catalog() {
                         </label>
                         <input 
                           type="text" 
+                          name="note"
+                          autoComplete="off"
                           placeholder="অর্ডার সম্পর্কে কোনো বিশেষ কথা"
                           value={form.note}
                           onChange={(e) => setForm({ ...form, note: e.target.value })}
-                          className="w-full bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/20 rounded-2xl px-6 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-neon-blue transition-all text-sm shadow-inner"
+                          className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm shadow-inner"
                         />
                       </div>
                       <div className="pt-4">

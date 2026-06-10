@@ -11,6 +11,16 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [orderSuccess, setOrderSuccess] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      const formEl = document.getElementById("quick-checkout-form");
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
+
   const HELPLINE = (import.meta as any).env.VITE_HELPLINE_PHONE || "01983914915";
 
   const bengaliToEnglishDigits = (str: string) => {
@@ -70,9 +80,9 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-3xl p-4 sm:p-6 my-6 space-y-6 overflow-hidden"
+      className="bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-3xl p-4 sm:p-6 my-6 space-y-6"
     >
-      <div className="flex items-center gap-3 border-b border-slate-200 dark:border-white/5 pb-4">
+      <div className="flex items-center gap-3 border-b border-slate-200 dark:border-white/5 pb-4 pt-2 -mx-[15px] px-[15px] sm:-mx-[23px] sm:px-[23px] bg-slate-100 dark:bg-[#121212] rounded-t-[22px]">
         <ShoppingBag className="text-neon-blue" size={20} />
         <h4 className="text-lg font-bold text-slate-900 dark:text-white">আপনার অর্ডার</h4>
       </div>
@@ -81,7 +91,10 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
       <div className="space-y-3">
         {cart.map((item) => (
           <div key={`${item.id}-${item.size}`} className="flex items-center gap-3 bg-white dark:bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <img src={item.image} className="w-10 h-10 object-contain rounded-lg bg-white dark:bg-black border border-slate-100 dark:border-none" />
+            <div className="relative shrink-0 w-10 h-10">
+              <img src={item.image} className="w-full h-full object-contain rounded-lg bg-white dark:bg-black border border-slate-100 dark:border-none" />
+              <img src="/logo-web.png" alt="Logo" className="absolute bottom-0.5 right-0.5 w-3 h-3 object-contain rounded bg-white/70 dark:bg-black/70 p-0.5 border border-white/10 z-20 pointer-events-none" />
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-slate-900 dark:text-white text-xs font-bold truncate leading-[1.8]">{item.title}</p>
               <p className="text-[10px] text-slate-500 dark:text-white/40 leading-[1.8]">{item.price} x {item.quantity}</p>
@@ -96,7 +109,7 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
         ))}
       </div>
 
-      <div className="space-y-2 border-t border-slate-200 dark:border-white/5 pt-4">
+      <div id="quick-checkout-form" className="space-y-2 border-t border-slate-200 dark:border-white/5 pt-4">
         <div className="flex justify-between text-xs text-slate-600 dark:text-white/60">
           <span>সাবটোটাল</span>
           <span>{totalPrice.toLocaleString()} ৳</span>
@@ -117,30 +130,43 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
             <input 
               type="text" 
+              name="name"
+              autoComplete="name"
               placeholder="আপনার নাম (ঐচ্ছিক)"
               value={form.name}
               onChange={(e) => setForm({...form, name: e.target.value})}
-              className="w-full bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 text-sm focus:border-neon-blue outline-none transition-all shadow-inner dark:shadow-none"
+              className="w-full bg-white dark:bg-black/40 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-xl pl-12 pr-4 py-3 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 text-sm focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] outline-none transition-all shadow-inner dark:shadow-none"
             />
           </div>
           <div className="relative">
             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
             <input 
               type="tel" 
+              name="phone"
+              autoComplete="tel"
               placeholder="মোাবাইল নম্বর"
               required
               value={form.phone}
-              onChange={(e) => setForm({...form, phone: e.target.value})}
-              className="w-full bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 text-sm focus:border-neon-blue outline-none transition-all shadow-inner dark:shadow-none"
+              onChange={(e) => {
+                let val = e.target.value.trim();
+                val = bengaliToEnglishDigits(val);
+                if (val.startsWith("+88")) val = val.slice(3);
+                if (val.startsWith("88")) val = val.slice(2);
+                val = val.replace(/\D/g, "").slice(0, 11);
+                setForm({...form, phone: val});
+              }}
+              className="w-full bg-white dark:bg-black/40 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-xl pl-12 pr-4 py-3 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 text-sm focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] outline-none transition-all shadow-inner dark:shadow-none"
             />
           </div>
           <div className="relative">
             <MapPin className="absolute left-4 top-3 text-slate-400 dark:text-white/20" size={16} />
             <textarea 
+              name="address"
+              autoComplete="street-address"
               placeholder="সম্পূর্ণ ঠিকানা (ঐচ্ছিক)"
               value={form.address}
               onChange={(e) => setForm({...form, address: e.target.value})}
-              className="w-full bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 text-sm focus:border-neon-blue outline-none transition-all min-h-[80px] shadow-inner dark:shadow-none"
+              className="w-full bg-white dark:bg-black/40 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-xl pl-12 pr-4 py-3 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 text-sm focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] outline-none transition-all min-h-[80px] shadow-inner dark:shadow-none"
             />
           </div>
         </div>
@@ -300,6 +326,13 @@ export default function ProductCard({
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isAdded) {
+      const formEl = document.getElementById("quick-checkout-form");
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      return;
+    }
     if (validSizes.length > 0 && !selectedSize) {
       setError("দয়া করে সাইজ নির্বাচন করুন");
       return;
@@ -380,6 +413,7 @@ export default function ProductCard({
             }}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
+          <img src="/logo-web.png" alt="Logo" className="absolute bottom-1.5 right-1.5 w-5 h-5 sm:w-7 sm:h-7 object-contain rounded-lg bg-white/70 dark:bg-black/70 p-0.5 border border-white/20 shadow-md z-30 pointer-events-none" />
         </div>
 
 
@@ -461,6 +495,7 @@ export default function ProductCard({
                     onClick={() => setShowFullScreen(true)}
                     className="w-full h-full object-cover relative z-10 cursor-zoom-in hover:scale-105 transition-transform duration-700"
                   />
+                  <img src="/logo-web.png" alt="Logo" className="absolute bottom-3 right-3 w-8 h-8 md:w-10 md:h-10 object-contain rounded-xl bg-white/70 dark:bg-black/70 p-1 border border-white/20 shadow-md z-30 pointer-events-none" />
 
                   {/* Thumbnails Overlay */}
                   {productImages.length > 1 && (

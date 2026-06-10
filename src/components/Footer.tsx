@@ -2,6 +2,7 @@ import { ShoppingCart, Facebook, Instagram, Twitter, Youtube, ArrowRight } from 
 import { motion } from "motion/react";
 
 export default function Footer() {
+  const siteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "শুকরিয়া শপ";
   return (
     <footer className="relative mt-12 md:mt-20 pt-16 md:pt-20 pb-8 md:pb-10 px-4 sm:px-6 overflow-hidden bg-white/90 dark:bg-transparent border-t border-slate-200 dark:border-transparent">
       {/* Decorative Glows */}
@@ -15,12 +16,12 @@ export default function Footer() {
             <div className="flex items-center justify-center sm:justify-start gap-3">
               <motion.div 
                 whileHover={{ scale: 1.1, rotate: 10 }}
-                className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center text-white shadow-lg shadow-neon-blue/20"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl overflow-hidden bg-white/10 flex items-center justify-center shadow-lg shadow-neon-blue/10 border border-neon-blue/20"
               >
-                <ShoppingCart size={22} className="md:w-7 md:h-7" />
+                <img src="/logo-web.png" alt="Logo" className="w-full h-full object-cover" />
               </motion.div>
               <span className="text-2xl md:text-3xl font-black font-display tracking-tighter text-slate-950 dark:text-white">
-                আমার <span className="text-neon-blue">দোকান</span>
+                {siteName}
               </span>
             </div>
             <p className="text-slate-700 dark:text-white/60 text-base md:text-lg leading-relaxed font-medium px-4 sm:px-0">
@@ -94,7 +95,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col items-center md:items-start gap-1">
             <p className="text-[8px] md:text-[10px] font-black text-slate-600 dark:text-white/40 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">
-              © ২০২৪ AMARDOKAN INC. | {(import.meta as any).env.VITE_OUR_LOCATION || "ঢাকা, বাংলাদেশ"}
+              © ২০২৪ {siteName.toUpperCase()} INC. | {(import.meta as any).env.VITE_OUR_LOCATION || "ঢাকা, বাংলাদেশ"}
             </p>
           </div>
           
