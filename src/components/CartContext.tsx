@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { trackEvent } from "../lib/pixel";
 
 export interface CartItem {
   id: string | number;
@@ -84,6 +85,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [isCooldownActive, remainingTime]);
 
   const addToCart = (product: any) => {
+    // Extract number from price string like "494.1 ৳"
+    // Replace everything except digits and dot, then parse and round
+    const priceNum = Math.round(parseFloat(product.price.replace(/[^\d.]/g, "")) || 0);
+
+    // Track Facebook Pixel event
+    trackEvent("AddToCart", {
+      content_ids: [String(product.id)],
+      content_name: product.title,
+      content_type: "product",
+      value: priceNum * (product.quantity || 1),
+      currency: "BDT"
+    });
+
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id && item.size === product.size);
       if (existing) {
@@ -93,9 +107,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             : item
         );
       }
-      // Extract number from price string like "494.1 ৳"
-      // Replace everything except digits and dot, then parse and round
-      const priceNum = Math.round(parseFloat(product.price.replace(/[^\d.]/g, "")) || 0);
       return [...prev, { ...product, priceNum, quantity: product.quantity || 1 }];
     });
   };
@@ -158,6 +169,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       const data = await res.json();
       if (data.success) {
+        // Track Purchase event before clearing the cart
+        trackEvent("Purchase", {
+          content_type: "product",
+          content_ids: cart.map(item => String(item.id)),
+          value: finalTotal,
+          currency: "BDT",
+          num_items: totalItems
+        });
+
         clearCart();
         const now = Date.now();
         localStorage.setItem("last_order_time", now.toString());

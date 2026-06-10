@@ -21,13 +21,25 @@ import { motion, AnimatePresence } from "motion/react";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import SyncPage from "./pages/SyncPage";
+import { initPixel, trackEvent } from "./lib/pixel";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const [isTrackOpen, setIsTrackOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { totalItems, totalPrice } = useCart();
+
+  React.useEffect(() => {
+    trackEvent("PageView");
+  }, [location.pathname]);
 
   const handleCartClick = () => {
+    trackEvent("InitiateCheckout", {
+      value: totalPrice,
+      currency: "BDT",
+      num_items: totalItems
+    });
+
     if (location.pathname !== "/") {
       navigate("/");
       setTimeout(() => {
@@ -87,6 +99,11 @@ export default function App() {
   React.useEffect(() => {
     const siteName = (import.meta as any).env.VITE_SITE_NAME || (import.meta as any).env.VITE_WEBSITE_NAME || "শুকরিয়া শপ";
     document.title = siteName;
+
+    const pixelId = (import.meta as any).env.VITE_FACEBOOK_PIXEL_ID;
+    if (pixelId) {
+      initPixel(pixelId);
+    }
   }, []);
 
   return (
