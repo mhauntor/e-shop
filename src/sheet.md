@@ -2,6 +2,10 @@
  * AMARDOKAN ALL-IN-ONE SCRIPT (Updated with Delivery Charge, Master Sync & Tracking Images)
  */
 
+function myFunction() {
+  Logger.log("Script is ready. No manual execution needed.");
+}
+
 function doPost(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
@@ -113,6 +117,32 @@ function doPost(e) {
         success: true,
         orders: results
       })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // ৪. চ্যাট/যোগাযোগ প্রসেস করা
+    if (data.action === "chat") {
+      let sheet = ss.getSheetByName("chat");
+      const headers = ["ID", "Timestamp", "ip", "browser", "Contect", "Subject", "Message", "Replay"];
+      
+      if (!sheet) {
+        sheet = ss.insertSheet("chat");
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold").setBackground("#f3f3f3");
+        sheet.setFrozenRows(1);
+      }
+      
+      const rowData = [
+        data.id || "",
+        data.timestamp || "",
+        data.ip || "",
+        data.browser || "",
+        data.contect || "",
+        data.subject || "",
+        data.message || "",
+        data.replay || ""
+      ];
+      
+      sheet.appendRow(rowData);
+      return ContentService.createTextOutput(JSON.stringify({ success: true, id: data.id })).setMimeType(ContentService.MimeType.JSON);
     }
     
     return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Invalid action" })).setMimeType(ContentService.MimeType.JSON);

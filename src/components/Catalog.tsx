@@ -32,6 +32,10 @@ export default function Catalog() {
     cart, updateQuantity, removeFromCart, totalPrice, clearCart,
     submitOrder, isCooldownActive, remainingTime, deliveryCharge
   } = useCart();
+
+  const dhakaCharge = Number((import.meta as any).env.VITE_DELIVERY_CHARGE_Dhake || 120);
+  const outsideCharge = Number((import.meta as any).env.VITE_DELIVERY_CHARGE || 70);
+
   const [products, setProducts] = useState<any[]>(() => {
     try {
       const cachedData = localStorage.getItem("catalog_cache");
@@ -95,6 +99,15 @@ export default function Catalog() {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  const formatCooldownTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m === 0) {
+      return `${s} সেকেন্ড`;
+    }
+    return `${m} মিনিট ${s} সেকেন্ড`;
   };
 
   // Gift & Timer Effects
@@ -410,12 +423,25 @@ export default function Catalog() {
     }
 
     setIsSubmitting(true);
-    const res = await submitOrder({ ...form, phone: cleanPhone }, isGiftClaimed);
+    const orderForm = {
+      name: form.name,
+      phone: cleanPhone,
+      address: form.address,
+      note: form.note,
+      area: ""
+    };
+
+    const res = await submitOrder(orderForm, isGiftClaimed);
     setIsSubmitting(false);
 
     if (res.success) {
       setOrderSuccessData({ id: res.orderId! });
-      setForm({ name: "", phone: "", address: "", note: "" });
+      setForm({
+        name: "",
+        phone: "",
+        address: "",
+        note: ""
+      });
     } else {
       alert(res.message || "অর্ডার করতে সমস্যা হয়েছে।");
     }
@@ -908,8 +934,6 @@ export default function Catalog() {
                         />
                       </div>
 
-
-
                       <div className="space-y-2 group">
                         <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 dark:text-white/60 flex items-center gap-2 mb-2 ml-2">
                           <MapPin size={12} className="text-neon-blue" /> আপনার পুরো ঠিকানা (শহর, উপজেলা সহ)
@@ -939,6 +963,11 @@ export default function Catalog() {
                           className="w-full bg-slate-100 dark:bg-black/60 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-2xl px-6 py-4 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 focus:outline-none focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] transition-all text-sm shadow-inner"
                         />
                       </div>
+
+                      <div className="p-4 bg-neon-blue/10 border border-neon-blue/20 rounded-2xl text-[12px] text-slate-800 dark:text-white/80 leading-relaxed font-semibold">
+                        🚚 ডেলিভারি চার্জ: ঢাকার ভিতরে {dhakaCharge} ৳, ঢাকার বাইরে {outsideCharge} ৳
+                      </div>
+
                       <div className="pt-4">
                         <button
                           type="submit"
@@ -948,7 +977,7 @@ export default function Catalog() {
                           <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-blue to-neon-purple rounded-2xl blur opacity-60 group-hover:opacity-100 transition duration-1000" />
                           <div className="relative w-full bg-neon-blue text-slate-950 font-black text-xl py-5 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3 shadow-lg shadow-neon-blue/30">
                             <CheckCircle size={22} />
-                            {isSubmitting ? "অর্ডার সাবমিট হচ্ছে..." : isCooldownActive ? `অপেক্ষা করুন (${formatTime(remainingTime)})` : "অর্ডার কনফার্ম করুন"}
+                            {isSubmitting ? "অর্ডার সাবমিট হচ্ছে..." : isCooldownActive ? `অপেক্ষা করুন (${formatCooldownTime(remainingTime)})` : "অর্ডার কনফার্ম করুন"}
                           </div>
                         </button>
                       </div>
@@ -975,7 +1004,7 @@ export default function Catalog() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-8 sm:p-12 rounded-[3rem] text-center max-w-lg w-full shadow-2xl dark:shadow-[0_0_100px_rgba(0,242,255,0.2)]"
+              className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-8 sm:p-12 rounded-[3rem] text-center max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl dark:shadow-[0_0_100px_rgba(0,242,255,0.2)]"
             >
               <div className="w-20 h-20 bg-neon-blue/20 rounded-full flex items-center justify-center text-neon-blue mx-auto mb-8 border border-neon-blue/30">
                 <CheckCircle size={40} />
@@ -989,7 +1018,7 @@ export default function Catalog() {
 
               <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl p-6 mb-8">
                 <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-white/40 mb-2">পরবর্তী অর্ডারের জন্য অপেক্ষা</p>
-                <div className="text-3xl font-black text-slate-900 dark:text-white font-display">{formatTime(remainingTime)}</div>
+                <div className="text-3xl font-black text-slate-900 dark:text-white font-display">{formatCooldownTime(remainingTime)}</div>
               </div>
 
               <button

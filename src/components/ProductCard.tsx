@@ -7,7 +7,16 @@ import { useCart } from "./CartContext";
 
 const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) => {
   const { cart, totalPrice, deliveryCharge, submitOrder, updateQuantity, removeFromCart, isCooldownActive, remainingTime } = useCart();
-  const [form, setForm] = React.useState({ name: "", phone: "", address: "", note: "" });
+
+  const dhakaCharge = Number((import.meta as any).env.VITE_DELIVERY_CHARGE_Dhake || 120);
+  const outsideCharge = Number((import.meta as any).env.VITE_DELIVERY_CHARGE || 70);
+
+  const [form, setForm] = React.useState({
+    name: "",
+    phone: "",
+    address: "",
+    note: ""
+  });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [orderSuccess, setOrderSuccess] = React.useState<string | null>(null);
 
@@ -28,6 +37,8 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
     return str.replace(/[০-৯]/g, (w) => String(bengaliDigits.indexOf(w)));
   };
 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let cleanPhone = bengaliToEnglishDigits(form.phone.trim());
@@ -41,20 +52,42 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
     }
 
     setIsSubmitting(true);
-    const res = await submitOrder({ ...form, phone: cleanPhone });
+    const orderForm = {
+      name: form.name,
+      phone: cleanPhone,
+      address: form.address,
+      note: form.note,
+      area: ""
+    };
+
+    const res = await submitOrder(orderForm);
     setIsSubmitting(false);
 
     if (res.success) {
       setOrderSuccess(res.orderId!);
-      setForm({ name: "", phone: "", address: "", note: "" });
+      setForm({
+        name: "",
+        phone: "",
+        address: "",
+        note: ""
+      });
     } else {
       alert(res.message || "অর্ডার করতে সমস্যা হয়েছে।");
     }
   };
 
+  const formatCooldownTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m === 0) {
+      return `${s} সেকেন্ড`;
+    }
+    return `${m} মিনিট ${s} সেকেন্ড`;
+  };
+
   if (orderSuccess) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-green-500/10 border border-green-500/20 rounded-3xl p-8 text-center my-6"
@@ -65,7 +98,7 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
         <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">অর্ডার সফল হয়েছে!</h3>
         <p className="text-slate-600 dark:text-white/60 text-sm mb-2">অর্ডার আইডি: <span className="text-neon-blue font-bold">{orderSuccess}</span></p>
         <p className="text-slate-600 dark:text-white/60 text-sm mb-4">কিছু ক্ষণের ভিতর আমাদের প্রতিনিধি আপনার সাথে যোগাযোগ করবেন। ইনশাআল্লাহ</p>
-        <button 
+        <button
           onClick={() => { setOrderSuccess(null); setIsAdded(false); }}
           className="text-xs font-black uppercase tracking-widest text-neon-blue hover:underline"
         >
@@ -78,7 +111,7 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
   if (cart.length === 0) return null;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-3xl p-4 sm:p-6 my-6 space-y-6"
@@ -101,10 +134,10 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
               <p className="text-[10px] text-slate-500 dark:text-white/40 leading-[1.8]">{item.price} x {item.quantity}</p>
             </div>
             <div className="flex items-center gap-2">
-               <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)} className="w-5 h-5 bg-slate-200 dark:bg-white/10 rounded flex items-center justify-center text-slate-900 dark:text-white"><Minus size={10}/></button>
-               <span className="text-xs font-bold text-slate-900 dark:text-white">{item.quantity}</span>
-               <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)} className="w-5 h-5 bg-slate-200 dark:bg-white/10 rounded flex items-center justify-center text-slate-900 dark:text-white"><Plus size={10}/></button>
-               <button onClick={() => removeFromCart(item.id, item.size)} className="ml-2 text-slate-400 dark:text-white/20 hover:text-red-500"><Trash2 size={14}/></button>
+              <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)} className="w-5 h-5 bg-slate-200 dark:bg-white/10 rounded flex items-center justify-center text-slate-900 dark:text-white"><Minus size={10} /></button>
+              <span className="text-xs font-bold text-slate-900 dark:text-white">{item.quantity}</span>
+              <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)} className="w-5 h-5 bg-slate-200 dark:bg-white/10 rounded flex items-center justify-center text-slate-900 dark:text-white"><Plus size={10} /></button>
+              <button onClick={() => removeFromCart(item.id, item.size)} className="ml-2 text-slate-400 dark:text-white/20 hover:text-red-500"><Trash2 size={14} /></button>
             </div>
           </div>
         ))}
@@ -129,20 +162,20 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
         <div className="space-y-3">
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="name"
               autoComplete="name"
               placeholder="আপনার নাম (ঐচ্ছিক)"
               value={form.name}
-              onChange={(e) => setForm({...form, name: e.target.value})}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full bg-white dark:bg-black/40 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-xl pl-12 pr-4 py-3 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 text-sm focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] outline-none transition-all shadow-inner dark:shadow-none"
             />
           </div>
           <div className="relative">
             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
-            <input 
-              type="tel" 
+            <input
+              type="tel"
               name="phone"
               autoComplete="tel"
               placeholder="মোাবাইল নম্বর"
@@ -154,29 +187,34 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
                 if (val.startsWith("+88")) val = val.slice(3);
                 if (val.startsWith("88")) val = val.slice(2);
                 val = val.replace(/\D/g, "").slice(0, 11);
-                setForm({...form, phone: val});
+                setForm({ ...form, phone: val });
               }}
               className="w-full bg-white dark:bg-black/40 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-xl pl-12 pr-4 py-3 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 text-sm focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] outline-none transition-all shadow-inner dark:shadow-none"
             />
           </div>
           <div className="relative">
             <MapPin className="absolute left-4 top-3 text-slate-400 dark:text-white/20" size={16} />
-            <textarea 
+            <textarea
               name="address"
               autoComplete="street-address"
               placeholder="সম্পূর্ণ ঠিকানা (ঐচ্ছিক)"
               value={form.address}
-              onChange={(e) => setForm({...form, address: e.target.value})}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="w-full bg-white dark:bg-black/40 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-xl pl-12 pr-4 py-3 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 text-sm focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] outline-none transition-all min-h-[80px] shadow-inner dark:shadow-none"
             />
           </div>
+          <div className="p-3 bg-neon-blue/10 border border-neon-blue/20 rounded-xl text-[11px] text-slate-800 dark:text-white/80 leading-relaxed font-semibold">
+            🚚 ডেলিভারি চার্জ: ঢাকার ভিতরে {dhakaCharge} ৳, ঢাকার বাইরে {outsideCharge} ৳
+          </div>
+
+
         </div>
 
         <p className="text-[10px] text-slate-500 dark:text-white/40 leading-relaxed italic">
           * অর্ডার করতে প্রবলেম হলে শুধু আপনার ফোন নম্বর লিখে সাবমিট করুন। অথবা এই হেল্পলাইন নম্বরে কল করুন: <a href={`tel:${HELPLINE}`} className="text-neon-blue font-bold">{HELPLINE}</a>
         </p>
 
-        <button 
+        <button
           type="submit"
           disabled={isSubmitting || isCooldownActive}
           className={cn(
@@ -184,7 +222,7 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
             isCooldownActive ? "bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-white/40" : "bg-neon-blue text-slate-950 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black active:scale-95"
           )}
         >
-          {isSubmitting ? "অর্ডার সাবমিট হচ্ছে..." : isCooldownActive ? `অপেক্ষা করুন (${Math.floor(remainingTime / 60)}m)` : "অর্ডার কনফার্ম করুন"}
+          {isSubmitting ? "অর্ডার সাবমিট হচ্ছে..." : isCooldownActive ? `অপেক্ষা করুন (${formatCooldownTime(remainingTime)})` : "অর্ডার কনফার্ম করুন"}
         </button>
       </form>
     </motion.div>
@@ -216,8 +254,8 @@ interface ProductCardProps {
 
 
 
-export default function ProductCard({ 
-  id, title, price, category, rating, image, images, description, sizes, sizeInfo, link, sellQuantity, discountTag, optionTags, groupImages, isExpanded, onToggleExpand, regularPrice, discountPercent 
+export default function ProductCard({
+  id, title, price, category, rating, image, images, description, sizes, sizeInfo, link, sellQuantity, discountTag, optionTags, groupImages, isExpanded, onToggleExpand, regularPrice, discountPercent
 }: ProductCardProps) {
   const { addToCart, totalItems } = useCart();
   const [quantity, setQuantity] = React.useState(1);
@@ -228,19 +266,19 @@ export default function ProductCard({
   const [showSizeGuide, setShowSizeGuide] = React.useState(false);
   const [showFullScreen, setShowFullScreen] = React.useState(false);
   const [error, setError] = React.useState("");
-  
+
   // Update active image when prop changes (needed for async data)
   React.useEffect(() => {
     if (image) setActiveImg(image);
   }, [image]);
-  
+
   const [isAdded, setIsAdded] = React.useState(false);
-  
-  const productImages = Array.isArray(images) 
-    ? (images.length > 0 ? images : [image]) 
-    : (images && typeof images === "string" 
-        ? images.split(",").map((s: string) => s.trim()) 
-        : [image]);
+
+  const productImages = Array.isArray(images)
+    ? (images.length > 0 ? images : [image])
+    : (images && typeof images === "string"
+      ? images.split(",").map((s: string) => s.trim())
+      : [image]);
   const HELPLINE = (import.meta as any).env.VITE_HELPLINE_PHONE || "01983914915";
 
   // Parse inStockSizes from sizes prop
@@ -398,10 +436,10 @@ export default function ProductCard({
 
 
         <div className="relative h-[140px] sm:h-[250px] rounded-t-[20px] bg-gradient-to-br from-slate-100 to-slate-50 dark:from-white/5 dark:to-white/[0.02] flex items-center justify-center overflow-hidden border-b border-slate-200 dark:border-neon-blue/20">
-          <motion.img 
+          <motion.img
             layoutId={`img-${id}`}
-            src={activeImg} 
-            alt={title} 
+            src={activeImg}
+            alt={title}
             referrerPolicy="no-referrer"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -419,7 +457,7 @@ export default function ProductCard({
 
 
         <div className="px-2 sm:px-5 py-2 sm:py-6 flex flex-col flex-1 text-slate-900 dark:text-white">
-          <motion.h1 
+          <motion.h1
             layoutId={`title-${id}`}
             className="font-display font-black leading-[1.4] tracking-tight text-[11px] xs:text-[13px] sm:text-lg truncate mb-0.5"
           >
@@ -450,7 +488,7 @@ export default function ProductCard({
           </p>
 
           <div className="mt-auto">
-            <button 
+            <button
               className="w-full h-7 sm:h-12 bg-neon-blue border border-neon-blue rounded-md sm:rounded-xl text-[9px] sm:text-xs font-black text-slate-950 transition-all flex items-center justify-center gap-1 shadow-md shadow-neon-blue/20"
               onClick={(e) => { e.stopPropagation(); onToggleExpand?.(); }}
             >
@@ -465,19 +503,19 @@ export default function ProductCard({
       <AnimatePresence>
         {isExpanded && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/60 dark:bg-black/90 backdrop-blur-xl"
               onClick={onToggleExpand}
             />
-            
+
             <motion.div
               layoutId={`card-${id}`}
               className="bg-white dark:bg-[#0a0a0a] w-full max-w-[950px] h-fit max-h-[95vh] md:max-h-[90vh] rounded-[30px] md:rounded-[40px] overflow-y-auto md:overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl dark:shadow-[0_50px_100px_rgba(0,0,0,0.9)] flex flex-col md:flex-row relative z-10 no-scrollbar"
             >
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); onToggleExpand?.(); }}
                 className="absolute top-4 right-4 md:top-6 md:right-6 z-50 bg-slate-100 dark:bg-black/40 backdrop-blur-md hover:bg-slate-200 dark:hover:bg-white/20 p-2 md:p-3 rounded-full transition-all border border-slate-200 dark:border-white/10"
               >
@@ -488,10 +526,10 @@ export default function ProductCard({
               <div className="w-full md:w-[45%] h-auto md:min-h-[500px] bg-slate-50 dark:bg-[#050505] flex flex-col items-center relative shrink-0">
                 <div className="absolute inset-0 bg-grid-white/[0.01] -z-10" />
                 <div className="w-full aspect-square md:h-full flex items-center justify-center relative overflow-hidden">
-                  <motion.img 
+                  <motion.img
                     layoutId={`img-${id}`}
-                    src={activeImg} 
-                    alt={title} 
+                    src={activeImg}
+                    alt={title}
                     referrerPolicy="no-referrer"
                     onClick={() => setShowFullScreen(true)}
                     className="w-full h-full object-cover relative z-10 cursor-zoom-in hover:scale-105 transition-transform duration-700"
@@ -502,11 +540,11 @@ export default function ProductCard({
                   {productImages.length > 1 && (
                     <div className="absolute bottom-4 left-0 right-0 flex gap-2.5 z-20 overflow-x-auto no-scrollbar justify-center px-4">
                       {productImages.slice(0, 8).map((img, i) => (
-                        <button 
-                          key={i} 
+                        <button
+                          key={i}
                           onClick={() => setActiveImg(img)}
                           className={cn(
-                            "w-12 h-12 rounded-xl border-2 transition-all p-0.5 shrink-0 shadow-2xl", 
+                            "w-12 h-12 rounded-xl border-2 transition-all p-0.5 shrink-0 shadow-2xl",
                             activeImg === img ? "border-neon-blue scale-110 bg-white dark:bg-black/40" : "border-slate-200 dark:border-white/10 bg-white/80 dark:bg-black/20 opacity-60 hover:opacity-10"
                           )}
                         >
@@ -517,7 +555,7 @@ export default function ProductCard({
                   )}
 
                   {/* Share Button Overlay - Positioned to the left of the close button */}
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); handleShare(e); }}
                     className="absolute top-4 right-16 md:top-6 md:right-20 z-[60] bg-slate-100 dark:bg-black/60 backdrop-blur-md hover:bg-neon-blue p-2.5 rounded-full transition-all border border-slate-200 dark:border-white/20 group/share shadow-2xl"
                     title="পণ্যটি শেয়ার করুন"
@@ -536,7 +574,7 @@ export default function ProductCard({
                       ID: {id}
                     </span>
                   </div>
-                  <motion.h1 
+                  <motion.h1
                     layoutId={`title-${id}`}
                     className="text-2xl sm:text-3xl md:text-5xl font-black font-display text-slate-900 dark:text-white mb-3 md:mb-4 leading-[1.3] md:leading-[1.2] tracking-tight"
                   >
@@ -553,12 +591,12 @@ export default function ProductCard({
                     </div>
                     <div className="h-4 md:h-6 w-px bg-slate-200 dark:bg-white/10" />
                     <div className="flex items-center gap-2">
-                       <div className="flex text-yellow-400">
-                         {[...Array(5)].map((_, i) => (
-                           <span key={i} className={cn("text-xs", i < Math.floor(rating) ? "opacity-100" : "opacity-30")}>★</span>
-                         ))}
-                       </div>
-                       <span className="text-[10px] text-slate-500 dark:text-white/40 font-bold uppercase tracking-widest">({rating})</span>
+                      <div className="flex text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={cn("text-xs", i < Math.floor(rating) ? "opacity-100" : "opacity-30")}>★</span>
+                        ))}
+                      </div>
+                      <span className="text-[10px] text-slate-500 dark:text-white/40 font-bold uppercase tracking-widest">({rating})</span>
                     </div>
                     <div className="h-4 md:h-6 w-px bg-slate-200 dark:bg-white/10" />
                     <span className="text-[10px] md:text-[11px] text-slate-500 dark:text-white/40 font-bold uppercase tracking-widest">{sellQuantity || 0}+ বিক্রি হয়েছে</span>
@@ -573,7 +611,7 @@ export default function ProductCard({
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-white/30">সাইজ নির্বাচন করুন</span>
                           {sizeInfo && (
-                            <button 
+                            <button
                               onClick={() => setShowSizeGuide(true)}
                               className="text-[10px] uppercase font-black tracking-widest text-neon-blue hover:underline"
                             >
@@ -585,16 +623,16 @@ export default function ProductCard({
                           {allPossibleSizes.map(item => {
                             const isStockOut = !inStockSizes.includes(item.name);
                             return (
-                              <button 
+                              <button
                                 key={item.name}
                                 disabled={isStockOut}
                                 onClick={() => { setSelectedSize(item.name); setError(""); }}
                                 className={cn(
                                   "min-w-[54px] md:min-w-[64px] py-1.5 md:py-2 px-2.5 md:px-3 rounded-xl border transition-all flex flex-col items-center justify-center text-center relative shadow-sm",
-                                  isStockOut 
-                                    ? "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-400 dark:text-white/20 cursor-not-allowed opacity-50 shadow-none" 
-                                    : selectedSize === item.name 
-                                      ? "bg-neon-blue border-neon-blue text-slate-950 shadow-lg shadow-neon-blue/20" 
+                                  isStockOut
+                                    ? "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-400 dark:text-white/20 cursor-not-allowed opacity-50 shadow-none"
+                                    : selectedSize === item.name
+                                      ? "bg-neon-blue border-neon-blue text-slate-950 shadow-lg shadow-neon-blue/20"
                                       : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white/80 hover:bg-slate-200 dark:hover:bg-white/10"
                                 )}
                               >
@@ -617,66 +655,66 @@ export default function ProductCard({
                       </div>
                     )}
 
-                  <div className="flex flex-row gap-2 md:gap-3 items-stretch">
-                    {/* Quantity Selector */}
-                    <div className="flex items-center justify-between bg-slate-100 dark:bg-white/5 px-2 md:px-3 py-2 rounded-2xl border border-slate-200 dark:border-white/5 flex-1 max-w-[120px] md:max-w-[140px]">
-                      <button 
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white border border-slate-200 dark:border-none"
+                    <div className="flex flex-row gap-2 md:gap-3 items-stretch">
+                      {/* Quantity Selector */}
+                      <div className="flex items-center justify-between bg-slate-100 dark:bg-white/5 px-2 md:px-3 py-2 rounded-2xl border border-slate-200 dark:border-white/5 flex-1 max-w-[120px] md:max-w-[140px]">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white border border-slate-200 dark:border-none"
+                        >
+                          <Minus size={10} />
+                        </button>
+                        <span className="w-4 md:w-6 text-center font-black text-slate-900 dark:text-white text-sm md:text-base">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white border border-slate-200 dark:border-none"
+                        >
+                          <Plus size={10} />
+                        </button>
+                      </div>
+
+                      {/* Add to Cart Button */}
+                      <button
+                        onClick={handleAddToCart}
+                        className={cn(
+                          "flex-[3] py-3 md:py-4 font-black text-xs md:text-base rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 group",
+                          isAdded
+                            ? "bg-[#00ff66] text-black animate-pulse shadow-[0_0_25px_rgba(0,255,102,0.6)] border border-[#00ff66]"
+                            : "bg-neon-blue text-slate-950 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-950 shadow-[0_20px_40px_rgba(0,242,255,0.15)]"
+                        )}
                       >
-                        <Minus size={10} />
+                        <ShoppingBag size={16} className="group-hover:translate-y-[-1px] transition-transform" />
+                        {isAdded ? "যোগ হয়েছে" : "যোগ করুন"}
                       </button>
-                      <span className="w-4 md:w-6 text-center font-black text-slate-900 dark:text-white text-sm md:text-base">{quantity}</span>
-                      <button 
-                        onClick={() => setQuantity(quantity + 1)}
-                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/20 text-slate-900 dark:text-white border border-slate-200 dark:border-none"
+
+                      {/* Cart Icon Button */}
+                      <button
+                        onClick={handleGoToCart}
+                        className="flex-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-center text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 hover:border-neon-blue/40 transition-all group"
                       >
-                        <Plus size={10} />
+                        <div className="relative">
+                          <ShoppingBag size={18} />
+                          <AnimatePresence>
+                            {totalItems > 0 && (
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                key="cart-badge"
+                                className="absolute -top-2 -right-2 w-5 h-5 bg-[#00ff66] text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.6)] animate-pulse"
+                              >
+                                {totalItems}
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       </button>
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <button 
-                      onClick={handleAddToCart}
-                      className={cn(
-                        "flex-[3] py-3 md:py-4 font-black text-xs md:text-base rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 group",
-                        isAdded 
-                          ? "bg-[#00ff66] text-black animate-pulse shadow-[0_0_25px_rgba(0,255,102,0.6)] border border-[#00ff66]" 
-                          : "bg-neon-blue text-slate-950 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-950 shadow-[0_20px_40px_rgba(0,242,255,0.15)]"
-                      )}
-                    >
-                      <ShoppingBag size={16} className="group-hover:translate-y-[-1px] transition-transform" />
-                      {isAdded ? "যোগ হয়েছে" : "যোগ করুন"}
-                    </button>
+                    <AnimatePresence>
+                      {isAdded && <QuickCheckout setIsAdded={setIsAdded} />}
+                    </AnimatePresence>
 
-                    {/* Cart Icon Button */}
-                    <button 
-                      onClick={handleGoToCart}
-                      className="flex-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-center text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 hover:border-neon-blue/40 transition-all group"
-                    >
-                      <div className="relative">
-                        <ShoppingBag size={18} />
-                        <AnimatePresence>
-                          {totalItems > 0 && (
-                            <motion.span 
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              key="cart-badge"
-                              className="absolute -top-2 -right-2 w-5 h-5 bg-[#00ff66] text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.6)] animate-pulse"
-                            >
-                              {totalItems}
-                            </motion.span>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </button>
-                  </div>
-
-                  <AnimatePresence>
-                    {isAdded && <QuickCheckout setIsAdded={setIsAdded} />}
-                  </AnimatePresence>
-
-                   {/* Description Section */}
+                    {/* Description Section */}
                     <div className="relative pt-6 border-t border-slate-200 dark:border-white/5 space-y-6">
                       {/* Helpline Box */}
                       <div className="bg-neon-blue/10 border border-neon-blue/30 rounded-2xl p-4 sm:p-5 flex items-start gap-3 shadow-lg">
@@ -695,24 +733,24 @@ export default function ProductCard({
                           {description?.split('\n').map((line, index) => {
                             const trimmedLine = line.trim();
                             if (!trimmedLine) return null;
-                            
+
                             const isHeading = trimmedLine.endsWith(':') || trimmedLine.endsWith('?');
                             const hasCheck = trimmedLine.startsWith('✅');
                             const hasStar = trimmedLine.startsWith('✨') || trimmedLine.startsWith('🔹') || trimmedLine.startsWith('🔥');
-                            
+
                             // Remove the icon from text for custom rendering
                             const cleanText = trimmedLine.replace(/^[✅✨🔹🔥✅]\s*/, '');
 
                             return (
-                              <motion.div 
+                              <motion.div
                                 key={index}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 + 0.2 }}
                                 className={cn(
                                   "rounded-2xl transition-all duration-300",
-                                  isHeading 
-                                    ? "text-neon-blue font-black text-lg md:text-xl pt-6 pb-2 first:pt-0" 
+                                  isHeading
+                                    ? "text-neon-blue font-black text-lg md:text-xl pt-6 pb-2 first:pt-0"
                                     : "text-slate-700 dark:text-white/80 bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06] p-4 md:p-6 hover:bg-slate-100 dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.12] shadow-xl backdrop-blur-sm"
                                 )}
                               >
@@ -738,60 +776,60 @@ export default function ProductCard({
                 </div>
               </div>
 
-                {/* Size Guide Modal */}
-                <AnimatePresence>
-                  {showSizeGuide && (
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
-                      onClick={() => setShowSizeGuide(false)}
+              {/* Size Guide Modal */}
+              <AnimatePresence>
+                {showSizeGuide && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+                    onClick={() => setShowSizeGuide(false)}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="bg-white dark:bg-[#1a1a1a] p-8 rounded-3xl border border-slate-200 dark:border-white/10 max-w-lg w-full relative shadow-2xl"
+                      onClick={e => e.stopPropagation()}
                     >
-                      <motion.div 
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white dark:bg-[#1a1a1a] p-8 rounded-3xl border border-slate-200 dark:border-white/10 max-w-lg w-full relative shadow-2xl"
-                        onClick={e => e.stopPropagation()}
+                      <button
+                        onClick={() => setShowSizeGuide(false)}
+                        className="absolute top-4 right-4 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white"
                       >
-                        <button 
-                          onClick={() => setShowSizeGuide(false)}
-                          className="absolute top-4 right-4 text-slate-400 dark:text-white/40 hover:text-slate-900 dark:hover:text-white"
-                        >
-                          <X size={20} />
-                        </button>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-widest border-b border-slate-200 dark:border-white/10 pb-4">সাইজ গাইড</h3>
-                        <div className="text-slate-700 dark:text-white/70 text-sm leading-relaxed whitespace-pre-wrap">
-                          {sizeInfo}
-                        </div>
-                      </motion.div>
+                        <X size={20} />
+                      </button>
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-widest border-b border-slate-200 dark:border-white/10 pb-4">সাইজ গাইড</h3>
+                      <div className="text-slate-700 dark:text-white/70 text-sm leading-relaxed whitespace-pre-wrap">
+                        {sizeInfo}
+                      </div>
                     </motion.div>
-                  )}
-                </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-                {/* Full Screen Image Viewer */}
-                <AnimatePresence>
-                  {showFullScreen && (
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="fixed inset-0 z-[300] bg-black flex items-center justify-center p-4"
-                      onClick={() => setShowFullScreen(false)}
-                    >
-                      <button className="absolute top-6 right-6 text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10 p-2 rounded-full"><X /></button>
-                      <img 
-                        src={activeImg} 
-                        className="max-w-full max-h-full object-contain" 
-                        referrerPolicy="no-referrer"
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+              {/* Full Screen Image Viewer */}
+              <AnimatePresence>
+                {showFullScreen && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[300] bg-black flex items-center justify-center p-4"
+                    onClick={() => setShowFullScreen(false)}
+                  >
+                    <button className="absolute top-6 right-6 text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10 p-2 rounded-full"><X /></button>
+                    <img
+                      src={activeImg}
+                      className="max-w-full max-h-full object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
