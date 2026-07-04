@@ -148,13 +148,8 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
           <span>সাবটোটাল</span>
           <span>{totalPrice.toLocaleString()} ৳</span>
         </div>
-        <div className="flex justify-between text-xs text-slate-600 dark:text-white/60">
-          <span>ডেলিভারি চার্জ</span>
-          <span>{deliveryCharge} ৳</span>
-        </div>
-        <div className="flex justify-between text-sm font-black text-slate-900 dark:text-white pt-2 border-t border-slate-200 dark:border-white/5">
-          <span>সর্বমোট</span>
-          <span className="text-neon-blue">{(totalPrice + deliveryCharge).toLocaleString()} ৳</span>
+        <div className="text-xs text-slate-600 dark:text-white/60 mt-2">
+          🚚 ডেলিভারি চার্জ: ঢাকার ভিতরে {dhakaCharge} ৳, ঢাকার বাইরে {outsideCharge} ৳
         </div>
       </div>
 
@@ -203,9 +198,7 @@ const QuickCheckout = ({ setIsAdded }: { setIsAdded: (val: boolean) => void }) =
               className="w-full bg-white dark:bg-black/40 border-2 border-neon-blue/40 dark:border-neon-blue/30 rounded-xl pl-12 pr-4 py-3 text-slate-950 dark:text-white font-semibold placeholder:text-slate-500 dark:placeholder:text-white/50 text-sm focus:border-neon-blue focus:ring-4 focus:ring-neon-blue/30 focus:shadow-[0_0_18px_rgba(0,242,255,0.35)] outline-none transition-all min-h-[80px] shadow-inner dark:shadow-none"
             />
           </div>
-          <div className="p-3 bg-neon-blue/10 border border-neon-blue/20 rounded-xl text-[11px] text-slate-800 dark:text-white/80 leading-relaxed font-semibold">
-            🚚 ডেলিভারি চার্জ: ঢাকার ভিতরে {dhakaCharge} ৳, ঢাকার বাইরে {outsideCharge} ৳
-          </div>
+
 
 
         </div>
@@ -280,6 +273,8 @@ export default function ProductCard({
       ? images.split(",").map((s: string) => s.trim())
       : [image]);
   const HELPLINE = (import.meta as any).env.VITE_HELPLINE_PHONE || "01983914915";
+  const dhakaCharge = Number((import.meta as any).env.VITE_DELIVERY_CHARGE_Dhake || 120);
+  const outsideCharge = Number((import.meta as any).env.VITE_DELIVERY_CHARGE || 70);
 
   // Parse inStockSizes from sizes prop
   const inStockSizes: string[] = [];
@@ -606,6 +601,9 @@ export default function ProductCard({
 
                 <div className="flex-1 flex flex-col gap-6 md:gap-8">
                   <div className="space-y-4 md:space-y-6">
+                    <div className="-mt-2 md:-mt-4 p-3 bg-neon-blue/10 border border-neon-blue/20 rounded-xl text-xs md:text-sm text-slate-800 dark:text-white/80 leading-relaxed font-semibold inline-block">
+                      🚚 ডেলিভারি চার্জ: ঢাকার ভিতরে {dhakaCharge} ৳, ঢাকার বাইরে {outsideCharge} ৳
+                    </div>
                     {allPossibleSizes.length > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-3">
@@ -628,12 +626,14 @@ export default function ProductCard({
                                 disabled={isStockOut}
                                 onClick={() => { setSelectedSize(item.name); setError(""); }}
                                 className={cn(
-                                  "min-w-[54px] md:min-w-[64px] py-1.5 md:py-2 px-2.5 md:px-3 rounded-xl border transition-all flex flex-col items-center justify-center text-center relative shadow-sm",
+                                  "min-w-[54px] md:min-w-[64px] py-1.5 md:py-2 px-2.5 md:px-3 rounded-xl border transition-all flex flex-col items-center justify-center text-center relative shadow-sm duration-300",
                                   isStockOut
                                     ? "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-400 dark:text-white/20 cursor-not-allowed opacity-50 shadow-none"
                                     : selectedSize === item.name
                                       ? "bg-neon-blue border-neon-blue text-slate-950 shadow-lg shadow-neon-blue/20"
-                                      : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white/80 hover:bg-slate-200 dark:hover:bg-white/10"
+                                      : error === "দয়া করে সাইজ নির্বাচন করুন"
+                                        ? "bg-red-500/10 border-red-500 text-red-500 dark:text-red-400 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                                        : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white/80 hover:bg-slate-200 dark:hover:bg-white/10"
                                 )}
                               >
                                 <span className="block font-black text-xs md:text-sm leading-tight">{item.name}</span>
@@ -684,7 +684,7 @@ export default function ProductCard({
                         )}
                       >
                         <ShoppingBag size={16} className="group-hover:translate-y-[-1px] transition-transform" />
-                        {isAdded ? "যোগ হয়েছে" : "যোগ করুন"}
+                        {isAdded ? "অর্ডার করা হয়েছে" : "অর্ডার করতে চাই"}
                       </button>
 
                       {/* Cart Icon Button */}

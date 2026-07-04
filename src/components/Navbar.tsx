@@ -190,7 +190,7 @@ export default function Navbar({ onCartClick, onTrackClick, onFilterToggle }: { 
         </div>
 
         {/* Bottom Row: Category Bar separated by a line */}
-        <div className="w-full border-t border-slate-200 dark:border-white/10 pt-1.5 sm:pt-2 flex items-center justify-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar mx-auto">
+        <div className="w-full border-t border-slate-200 dark:border-white/10 pt-1.5 sm:pt-2 flex items-center justify-start md:justify-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar mx-auto px-2 sm:px-4">
           {categories.map((cat) => (
             <button 
               key={cat}

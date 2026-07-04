@@ -876,13 +876,8 @@ export default function Catalog() {
                         <span>সাব-টোটাল:</span>
                         <span>{totalPrice.toLocaleString()} ৳</span>
                       </div>
-                      <div className="flex justify-between items-center text-slate-600 dark:text-white/60 mb-6">
-                        <span>ডেলিভারি চার্জ:</span>
-                        <span>{deliveryCharge.toLocaleString()} ৳</span>
-                      </div>
-                      <div className="flex justify-between items-center text-3xl font-black text-slate-900 dark:text-white">
-                        <span>মোট:</span>
-                        <span className="text-neon-blue">{(totalPrice + deliveryCharge).toLocaleString()} ৳</span>
+                      <div className="text-sm text-slate-600 dark:text-white/60 mt-2">
+                        🚚 ডেলিভারি চার্জ: ঢাকার ভিতরে {dhakaCharge} ৳, ঢাকার বাইরে {outsideCharge} ৳
                       </div>
                     </div>
                   )}
