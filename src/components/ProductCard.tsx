@@ -460,11 +460,16 @@ export default function ProductCard({
           </motion.h1>
 
           <div className="flex flex-col mb-1.5">
-            <div className="flex items-baseline gap-1.5">
-              <h3 className="text-[13px] xs:text-sm sm:text-lg font-black text-neon-blue leading-[1.3]">{price}</h3>
+            <div className="flex items-baseline gap-1.5 flex-wrap">
               {regularPrice && (
                 <span className="text-[10px] sm:text-xs text-slate-400 dark:text-white/40 line-through font-bold">
                   {regularPrice}
+                </span>
+              )}
+              <h3 className="text-[13px] xs:text-sm sm:text-lg font-black text-neon-blue leading-[1.3]">{price}</h3>
+              {discountPercent && Number(discountPercent) > 0 && (
+                <span className="text-[9px] sm:text-[10px] bg-red-500/10 text-red-500 border border-red-500/20 px-1.5 py-0.5 rounded font-black">
+                  -{discountPercent}%
                 </span>
               )}
             </div>
@@ -576,11 +581,16 @@ export default function ProductCard({
                     {title}
                   </motion.h1>
                   <div className="flex items-center gap-3 mb-4 flex-wrap">
-                    <div className="flex items-baseline gap-2">
-                      <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">{price}</h3>
+                    <div className="flex items-baseline gap-2 flex-wrap">
                       {regularPrice && (
                         <span className="text-lg md:text-xl text-slate-400 dark:text-white/40 line-through font-bold">
                           {regularPrice}
+                        </span>
+                      )}
+                      <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">{price}</h3>
+                      {discountPercent && Number(discountPercent) > 0 && (
+                        <span className="text-sm md:text-base bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-lg font-black ml-1">
+                          -{discountPercent}% ছাড়
                         </span>
                       )}
                     </div>

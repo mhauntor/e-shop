@@ -196,6 +196,7 @@ export default function Catalog() {
       const allCats = new Set<string>(["সব"]);
       const sanitizedCatalog = data.catalog.map((p: any) => ({
         ...p,
+        Price: p.Price ? Math.round(Number(p.Price)) : p.Price,
         Image_Link: typeof p.Image_Link === 'string' ? p.Image_Link.trim() : p.Image_Link,
         Group_Images: Array.isArray(p.Group_Images) ? p.Group_Images.map((img: string) => typeof img === 'string' ? img.trim() : img) : p.Group_Images
       }));
@@ -301,6 +302,23 @@ export default function Catalog() {
   }, [products, categories, isLoading]);
 
   // 3. Sync URL with expandedId or category
+  useEffect(() => {
+    if (expandedId) {
+      const product = products.find(p => p.id === expandedId);
+      if (product) {
+        import("../lib/pixel").then(({ trackEvent }) => {
+          trackEvent("ViewContent", {
+            content_ids: [String(product.id)],
+            content_name: product.title,
+            content_type: "product",
+            value: product.Price || 0,
+            currency: "BDT"
+          });
+        });
+      }
+    }
+  }, [expandedId, products]);
+
   useEffect(() => {
     if (isLoading) return;
     const currentPath = window.location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
@@ -685,6 +703,8 @@ export default function Catalog() {
                   id={product.id}
                   title={product.title}
                   price={`${product.Price} ৳`}
+                  regularPrice={product.Regular_price ? `${product.Regular_price} ৳` : undefined}
+                  discountPercent={product.Discount_Percent}
                   category={Array.isArray(product.Category) ? product.Category.join(", ") : product.Category}
                   rating={product.Rating || 5}
                   image={product.Image_Link}
