@@ -4,6 +4,7 @@ import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 import fs from 'fs';
 import https from 'https';
+import sharp from 'sharp';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
@@ -101,20 +102,40 @@ export default defineConfig(({mode}) => {
                   if (imageUrl && imageUrl.startsWith('http')) {
                     try {
                       const urlObj = new URL(imageUrl);
-                      const ext = path.extname(urlObj.pathname) || '.jpg';
-                      const imageName = `${item.id}${ext}`;
-                      const imagePath = path.join(imageDir, imageName);
+                      const webpName = `${item.id}.webp`;
+                      const webpPath = path.join(imageDir, webpName);
                       
-                      await new Promise((resolve) => {
+                      const buffer: Buffer | null = await new Promise((resolve) => {
                         https.get(imageUrl, (imgRes) => {
                           if (imgRes.statusCode === 200) {
-                            const file = fs.createWriteStream(imagePath);
-                            imgRes.pipe(file);
-                            file.on('finish', () => { file.close(); resolve(true); });
-                          } else { resolve(false); }
-                        }).on('error', () => resolve(false));
+                            const chunks: any[] = [];
+                            imgRes.on('data', (chunk) => chunks.push(chunk));
+                            imgRes.on('end', () => resolve(Buffer.concat(chunks)));
+                          } else {
+                            resolve(null);
+                          }
+                        }).on('error', () => resolve(null));
                       });
-                      item.Image_Link = `/images/products/${imageName}`;
+
+                      if (buffer) {
+                        await sharp(buffer)
+                          .webp({ quality: 80 })
+                          .toFile(webpPath);
+
+                        // Delete older non-webp versions of the product image if they exist
+                        if (fs.existsSync(imageDir)) {
+                          const existingFiles = fs.readdirSync(imageDir);
+                          for (const file of existingFiles) {
+                            if (file.startsWith(`${item.id}.`) && !file.endsWith('.webp')) {
+                              try {
+                                fs.unlinkSync(path.join(imageDir, file));
+                              } catch (err) {}
+                            }
+                          }
+                        }
+
+                        item.Image_Link = `/images/products/${webpName}`;
+                      }
                     } catch (e) {}
                   }
                   updatedCatalog.push(item);

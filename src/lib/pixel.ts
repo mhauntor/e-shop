@@ -34,7 +34,6 @@ export const initPixel = (pixelId: string) => {
   }
 
   window.fbq('init', pixelId);
-  window.fbq('track', 'PageView');
 };
 
 export const trackEvent = (eventName: string, data?: any) => {
